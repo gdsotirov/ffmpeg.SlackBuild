@@ -1,0 +1,35 @@
+ffmpeg: ffmpeg-0.4.9-pre1
+ffmpeg:
+ffmpeg: FFmpeg is a complete solution to record, convert and stream audio and
+ffmpeg: video. It includes libavcodec, the leading audio/video codec library.
+ffmpeg: FFmpeg is developed under Linux, but it can compiled under most
+ffmpeg: operating systems, including Windows.
+ffmpeg:
+ffmpeg: The project is made of several components:
+ffmpeg:
+ffmpeg:   * ffmpeg is a command line tool to convert one video file format to
+ffmpeg:     another. It also supports grabbing and encoding in real time from
+ffmpeg:     a TV card.
+ffmpeg:   * ffserver is an HTTP (RTSP is being developped) multimedia
+ffmpeg:     streamingserver for live broadcasts. Time shifting of live
+ffmpeg:     broadcast is also supported.
+ffmpeg:   * ffplay is a simple media player based on SDL and on the FFmpeg
+ffmpeg:     libraries.
+ffmpeg:   * libavcodec is a library containing all the FFmpeg audio/video
+ffmpeg:     encoders and decoders. Most codecs were developped from scratch to
+ffmpeg:     ensure best performances and high code reusability.
+ffmpeg:   * libavformat is a library containing parsers and generators for all
+ffmpeg:     common audio/video formats.
+ffmpeg:
+ffmpeg:
+ffmpeg: ---
+ffmpeg: Package build by George D. Sotirov <gdsotirov@dir.bg>
+ffmpeg: Configure command: ./configure --prefix=/usr/local \
+ffmpeg:                                --enable-mp3lame \
+ffmpeg:                                --enable-vorbis \
+ffmpeg:                                --enable-a52 \
+ffmpeg:                                --enable-pp \
+ffmpeg:                                --enable-shared \
+ffmpeg:                                --enable-gpl
+ffmpeg: Package build: 2005-03-14 20:55
+ffmpeg:
