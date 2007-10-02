@@ -30,7 +30,7 @@ fix_source
 
 CFLAGS=$SLKCFLAGS \
 CXXFLAGS=$SLKCFLAGS \
-./configure --arch=i486 \
+./configure --arch=$ARCH \
             --target-os=linux \
             --prefix=/usr \
             --mandir=/usr/man \
@@ -51,7 +51,9 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libtheora \
             --enable-libvorbis \
             --enable-libx264 \
-            --enable-libxvid
+            --enable-libxvid \
+            --enable-libamr-nb \
+            --enable-libamr-wb
 
 make || exit 1
 
@@ -59,6 +61,9 @@ PKG="$TMP/package-$NAME"
 mkdir -p $PKG
 
 make DESTDIR=$PKG install
+# Additionally install ffserver config file
+install -m 755 -d $PKG/etc
+install -m 644 doc/ffserver.conf $PKG/etc/ffserver.conf.new
 
 bin_perms $PKG
 (cd $PKG; strip_bin; strip_lib)
@@ -66,13 +71,15 @@ gzip_man $PKG
 (cd $SRC; create_docs $PKG $NAME-$VERSION)
 
 mkdir -p $PKG/install
-install -m 644 $CWD/slack-desc $PKG/install/slack-desc
+install -m 644 $CWD/slack-desc     $PKG/install/slack-desc
 install -m 644 $CWD/slack-required $PKG/install/slack-required
+install -m 644 $CWD/doinst.sh      $PKG/install/doinst.sh
 
 mkdir -p $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/slack-desc $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/slack-required $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/slack-desc       $PKG/usr/src/slackbuilds/$NAME-$VERSION/slack-desc
+install -m 644 $CWD/slack-required   $PKG/usr/src/slackbuilds/$NAME-$VERSION/slack-required
+install -m 644 $CWD/doinst.sh        $PKG/usr/src/slackbuilds/$NAME-$VERSION/doinst.sh
+install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION/$NAME.SlackBuild
 
 cd $PKG
 PKGNAME=$NAME-$VERSION-$ARCH-$BUILD$MYIN
