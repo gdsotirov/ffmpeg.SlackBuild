@@ -38,37 +38,40 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-shared \
             --disable-static \
             --enable-gpl \
-            --enable-pp \
-            --enable-swscaler \
+            --enable-postproc \
+            --enable-swscale \
+            --enable-avfilter \
+            --enable-avfilter-lavf \
             --enable-pthreads \
             --enable-x11grab \
-            --enable-liba52 \
             --enable-libdc1394 \
             --enable-libfaac \
             --enable-libfaad \
             --enable-libmp3lame \
-            --enable-libogg \
+            --enable-libspeex \
             --enable-libtheora \
             --enable-libvorbis \
             --enable-libx264 \
-            --enable-libxvid \
-            --enable-libamr-nb \
-            --enable-libamr-wb
+            --enable-libxvid || exit 1
+#           --enable-libamr-nb \ # non-free
+#           --enable-libamr-wb \ # non-free
 
-make || exit 1
+make -j4 || exit 2
 
 PKG="$TMP/package-$NAME"
 mkdir -p $PKG
 
-make DESTDIR=$PKG install
+make DESTDIR=$PKG install || exit 3
 # Additionally install ffserver config file
 install -m 755 -d $PKG/etc
 install -m 644 doc/ffserver.conf $PKG/etc/ffserver.conf.new
 
 bin_perms $PKG
 (cd $PKG; strip_bin; strip_lib)
-gzip_man $PKG
+DOCFILES="$DOCFILES COPYING* MAINTAINERS"
 (cd $SRC; create_docs $PKG $NAME-$VERSION)
+( cd $PKG/usr/doc/$NAME-$VERSION; cp -a COPYING.GPL COPYING )
+gzip_man $PKG
 
 mkdir -p $PKG/install
 install -m 644 $CWD/slack-desc     $PKG/install/slack-desc
