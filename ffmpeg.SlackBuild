@@ -17,14 +17,20 @@ ARCH=${ARCH:-i486}
 TMP=${TMP:-/tmp}
 
 cd $TMP
-if [ -d $NAME ]; then
-  rm -rf $NAME
+if [ -d $NAME-$VERSION ]; then
+  rm -rf $NAME-$VERSION
 fi
 
 # Check out the source
 svn checkout svn://svn.mplayerhq.hu/ffmpeg/trunk ffmpeg
+mv $NAME $NAME-$VERSION
+SRC=$TMP/$NAME-$VERSION
 
-SRC=$TMP/$NAME
+# Backup the source
+tar -cf $NAME-$VERSION.tar $NAME-$VERSION
+bzip2 $NAME-$VERSION.tar
+mv $NAME-$VERSION.tar.bz2 $CWD
+
 cd $SRC
 fix_source
 
@@ -39,12 +45,13 @@ CXXFLAGS=$SLKCFLAGS \
             --disable-static \
             --enable-gpl \
             --enable-postproc \
-            --enable-swscale \
             --enable-avfilter \
             --enable-avfilter-lavf \
             --enable-pthreads \
             --enable-x11grab \
+            --enable-bzlib \
             --enable-libdc1394 \
+            --enable-libdirac \
             --enable-libfaac \
             --enable-libfaad \
             --enable-libmp3lame \
@@ -52,7 +59,9 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libtheora \
             --enable-libvorbis \
             --enable-libx264 \
-            --enable-libxvid || exit 1
+            --enable-libxvid \
+            --enable-zlib || exit 1
+#           --enable-avisynth \  # doesn't build
 #           --enable-libamr-nb \ # non-free
 #           --enable-libamr-wb \ # non-free
 
