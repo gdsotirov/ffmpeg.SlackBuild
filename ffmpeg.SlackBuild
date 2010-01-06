@@ -11,22 +11,35 @@
 
 NAME=ffmpeg
 VERSION=`date +%Y%m%d`
+ARCH=${ARCH:-i486}
 BUILD=1
 
-ARCH=${ARCH:-i486}
 TMP=${TMP:-/tmp}
+CWD=${CWD:-`pwd`}
+PKG_DIR=${PKG_DIR:-/tmp}
 
-cd $TMP
-if [ -d $NAME-$VERSION ]; then
-  rm -rf $NAME-$VERSION
+if [ ! -e $TMP ]; then
+  mkdir -p $TMP # location to build the source
 fi
 
-# Check out the source
+SRC=$TMP/$NAME-$VERSION
+if [ -e $SRC -a -d $SRC ]; then
+  echo "Source directory '$SRC' already exists! Plaese, move it or remove it."
+  exit 1
+fi
+
+PKG=$TMP/package-$NAME
+if [ -e $PKG -a -d $PKG ]; then
+  echo "Package creation directory '$PKG' already exists! Please, move it or remove it."
+  exit 2
+fi
+mkdir -p $PKG
+
+# Check out, backup and fix source
+cd $TMP
 svn checkout svn://svn.mplayerhq.hu/ffmpeg/trunk ffmpeg
 mv $NAME $NAME-$VERSION
-SRC=$TMP/$NAME-$VERSION
 
-# Backup the source
 tar -cf $NAME-$VERSION.tar $NAME-$VERSION
 bzip2 $NAME-$VERSION.tar
 mv $NAME-$VERSION.tar.bz2 $CWD
@@ -49,10 +62,10 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-avfilter-lavf \
             --enable-pthreads \
             --enable-x11grab \
+            --enable-runtime-cpudetect \
             --enable-bzlib \
             --enable-libdc1394 \
             --enable-libdirac \
-            --enable-libfaac \
             --enable-libfaad \
             --enable-libmp3lame \
             --enable-libspeex \
@@ -61,7 +74,7 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libx264 \
             --enable-libxvid \
             --enable-zlib || exit 1
-#           --enable-avisynth \  # doesn't build
+#           --enable-libfaac \   # non-free
 #           --enable-libamr-nb \ # non-free
 #           --enable-libamr-wb \ # non-free
 
@@ -79,7 +92,7 @@ bin_perms $PKG
 (cd $PKG; strip_bin; strip_lib)
 DOCFILES="$DOCFILES COPYING* MAINTAINERS"
 (cd $SRC; create_docs $PKG $NAME-$VERSION)
-( cd $PKG/usr/doc/$NAME-$VERSION; cp -a COPYING.GPL COPYING )
+( cd $PKG/usr/doc/$NAME-$VERSION; cp -a COPYING.GPLv3 COPYING )
 gzip_man $PKG
 
 mkdir -p $PKG/install
@@ -95,9 +108,9 @@ install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION/$NA
 
 cd $PKG
 PKGNAME=$NAME-$VERSION-$ARCH-$BUILD$MYIN
-makepkg -l y -c n $PKG_DIR/$PKGNAME.tgz
+makepkg -l y -c n $PKG_DIR/$PKGNAME.txz
 cd $PKG_DIR
-md5sum $PKGNAME.tgz > $PKGNAME.tgz.md5
+md5sum $PKGNAME.txz > $PKGNAME.txz.md5
 cat $PKG/install/slack-desc > $PKG_DIR/$PKGNAME.txt
 
 if [ "$1" == "--cleanup" ]; then
