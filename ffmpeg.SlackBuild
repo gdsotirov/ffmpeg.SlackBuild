@@ -2,21 +2,18 @@
 #
 # SlackBuild for ffmpeg
 # Written by Georgi D. Sotirov <gdsotirov@dir.bg>
-#
-# Bacause of the nature of the ffmpeg development this script checks out
-# the source code and builds a package for the current date.
+# Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
 
 . ../slack-package.conf
 
 NAME=ffmpeg
-VERSION=`date +%Y%m%d`
+VERSION=0.6
 ARCH=${ARCH:-i486}
-BUILD=1
+BUILD=${BUILD:-1}
 
 TMP=${TMP:-/tmp}
 CWD=${CWD:-`pwd`}
-PKG_DIR=${PKG_DIR:-/tmp}
 
 if [ ! -e $TMP ]; then
   mkdir -p $TMP # location to build the source
@@ -37,13 +34,7 @@ mkdir -p $PKG
 
 # Check out, backup and fix source
 cd $TMP
-svn checkout svn://svn.mplayerhq.hu/ffmpeg/trunk ffmpeg
-mv $NAME $NAME-$VERSION
-
-tar -cf $NAME-$VERSION.tar $NAME-$VERSION
-bzip2 $NAME-$VERSION.tar
-mv $NAME-$VERSION.tar.bz2 $CWD
-
+tar -xvf $CWD/$NAME-$VERSION.tar.bz2 || exit 1
 cd $SRC
 fix_source
 
@@ -64,26 +55,26 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-x11grab \
             --enable-runtime-cpudetect \
             --enable-bzlib \
+            --enable-libopencore-amrnb \
+            --enable-libopencore-amrwb \
+            --enable-version3 \
             --enable-libdc1394 \
             --enable-libdirac \
             --enable-libfaad \
             --enable-libmp3lame \
+            --enable-libschroedinger \
             --enable-libspeex \
             --enable-libtheora \
             --enable-libvorbis \
             --enable-libx264 \
             --enable-libxvid \
-            --enable-zlib || exit 1
-#           --enable-libfaac \   # non-free
-#           --enable-libamr-nb \ # non-free
-#           --enable-libamr-wb \ # non-free
+            --enable-zlib || exit 2
+#           --enable-libfaac # non-free
 
-make -j4 || exit 2
+# Build & install
+make -j4 || exit 3
+make DESTDIR=$PKG install || exit 4
 
-PKG="$TMP/package-$NAME"
-mkdir -p $PKG
-
-make DESTDIR=$PKG install || exit 3
 # Additionally install ffserver config file
 install -m 755 -d $PKG/etc
 install -m 644 doc/ffserver.conf $PKG/etc/ffserver.conf.new
