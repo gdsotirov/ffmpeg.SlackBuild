@@ -61,11 +61,15 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libdc1394 \
             --enable-libdirac \
             --enable-libfaad \
+            --enable-libgsm \
             --enable-libmp3lame \
+            --enable-libopenjpeg \
+            --enable-librtmp \
             --enable-libschroedinger \
             --enable-libspeex \
             --enable-libtheora \
             --enable-libvorbis \
+            --enable-libvpx \
             --enable-libx264 \
             --enable-libxvid \
             --enable-zlib || exit 2
