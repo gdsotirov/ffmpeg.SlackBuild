@@ -2,7 +2,6 @@ alsa-lib >= 1.0.23
 bzip2 >= 1.0.5
 cxxlibs >= 6.0.13 | gcc-g++ >= 4.4.4
 dirac >= 1.0.2
-faad2 >= 2.7
 freetype >= 2.3.12
 glibc-solibs >= 2.11.1
 gcc >= 4.4.4
@@ -22,6 +21,7 @@ libraw1394 >= 2.0.5
 libtheora >= 1.1.1
 libusb >= 1.0.8
 libvorbis >= 1.2.3
+libvpx >= 0.9.6
 libxcb >= 1.6
 ncurses >= 5.7
 opencore-amr >= 0.1.2
@@ -32,6 +32,6 @@ schroedinger >= 1.0.10
 sdl >= 1.2.14
 speex >= 1.2rc1
 svgalib >= 1.9.25
-x264
+x264 >= 20110514
 xvidcore >= 1.2.2
 zlib >= 1.2.3
