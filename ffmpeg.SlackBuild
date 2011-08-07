@@ -19,13 +19,13 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.9 2011/08/07 07:17:06 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.10 2011/08/07 08:13:29 gsotirov Exp $
 #
 
 . ../slack-package.conf
 
 NAME=ffmpeg
-VERSION=0.6.3
+VERSION=0.7.2
 ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
 
@@ -55,29 +55,36 @@ tar -xvf $CWD/$NAME-$VERSION.tar.bz2 || exit 1
 cd $SRC
 fix_source
 
+# Configure
 CFLAGS=$SLKCFLAGS \
 CXXFLAGS=$SLKCFLAGS \
 ./configure --arch=$ARCH \
             --target-os=linux \
             --prefix=/usr \
             --mandir=/usr/man \
-            --disable-debug \
             --enable-shared \
             --disable-static \
             --enable-gpl \
+            --enable-version3 \
+            --enable-doc \
+            --enable-ffmpeg \
+            --enable-ffplay \
+            --enable-ffprobe \
+            --enable-ffserver \
+            --enable-avdevice \
+            --enable-avcodec \
+            --enable-avformat \
+            --enable-swscale \
             --enable-postproc \
             --enable-avfilter \
-            --enable-avfilter-lavf \
             --enable-pthreads \
             --enable-x11grab \
             --enable-runtime-cpudetect \
             --enable-bzlib \
             --enable-libopencore-amrnb \
             --enable-libopencore-amrwb \
-            --enable-version3 \
             --enable-libdc1394 \
             --enable-libdirac \
-            --enable-libfaad \
             --enable-libgsm \
             --enable-libmp3lame \
             --enable-libopenjpeg \
@@ -89,7 +96,9 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libvpx \
             --enable-libx264 \
             --enable-libxvid \
-            --enable-zlib || exit 2
+            --enable-zlib \
+            --disable-debug || exit 2
+
 #           --enable-libfaac # non-free
 
 # Build & install
