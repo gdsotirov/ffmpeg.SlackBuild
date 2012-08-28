@@ -19,13 +19,13 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.10 2011/08/07 08:13:29 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.11 2012/08/28 21:07:09 gsotirov Exp $
 #
 
-. ../slack-package.conf
+. ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=0.7.2
+VERSION=0.7.13
 ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
 
@@ -61,6 +61,7 @@ CXXFLAGS=$SLKCFLAGS \
 ./configure --arch=$ARCH \
             --target-os=linux \
             --prefix=/usr \
+            --libdir=/usr/lib${LIBDIRSUFFIX} \
             --mandir=/usr/man \
             --enable-shared \
             --disable-static \
@@ -102,7 +103,7 @@ CXXFLAGS=$SLKCFLAGS \
 #           --enable-libfaac # non-free
 
 # Build & install
-make -j4 || exit 3
+make V=1 -j4 || exit 3
 make DESTDIR=$PKG install || exit 4
 
 # Additionally install ffserver config file
