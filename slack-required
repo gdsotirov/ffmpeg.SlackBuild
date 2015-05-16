@@ -2,7 +2,6 @@ alsa-lib >= 1.0.24.1
 bzip2 >= 1.0.6
 celt >= 0.11.2
 cxxlibs >= 6.0.14 | gcc-g++ >= 4.5.2
-dirac >= 1.0.2
 freetype >= 2.4.10
 glibc-solibs >= 2.13
 gcc >= 4.5.2
