@@ -19,7 +19,7 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.18 2015/05/24 07:16:57 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.18.2.1 2015/05/30 10:10:09 gsotirov Exp $
 #
 
 . ../../slack-package.conf
@@ -82,6 +82,7 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --enable-x11grab \
             --enable-runtime-cpudetect \
             --enable-bzlib \
+            --enable-libass \
             --enable-libcelt \
             --enable-libopencore-amrnb \
             --enable-libopencore-amrwb \
@@ -93,6 +94,7 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --enable-libschroedinger \
             --enable-libspeex \
             --enable-libtheora \
+            --enable-libtwolame \
             --enable-libvorbis \
             --enable-libvpx \
             --enable-libx264 \
