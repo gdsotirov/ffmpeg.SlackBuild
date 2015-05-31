@@ -19,7 +19,7 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.18.2.2 2015/05/30 21:15:07 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.18.2.3 2015/05/31 15:54:59 gsotirov Exp $
 #
 
 . ../../slack-package.conf
@@ -119,10 +119,14 @@ make V=1 DESTDIR=$PKG install || exit 6
 install -m 755 -d $PKG/etc
 install -m 644 doc/ffserver.conf $PKG/etc/ffserver.conf.new
 
+# Move libraries in the right place
+if [ "$ARCH" == "x86_64" ]; then
+  ( cd $PKG; mv usr/lib/* usr/lib${LIBDIRSUFFIX}/; rmdir usr/lib )
+fi
 bin_perms $PKG
-(cd $PKG; strip_bin; strip_lib)
+( cd $PKG; strip_bin; strip_lib)
 DOCFILES="$DOCFILES COPYING* MAINTAINERS"
-(cd $SRC; create_docs $PKG $NAME-$VERSION)
+( cd $SRC; create_docs $PKG $NAME-$VERSION)
 ( cd $PKG/usr/doc/$NAME-$VERSION; cp -a COPYING.GPLv3 COPYING )
 gzip_man $PKG
 
