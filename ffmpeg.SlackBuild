@@ -19,13 +19,13 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.24 2015/09/27 16:08:18 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.25 2015/09/30 09:21:17 gsotirov Exp $
 #
 
 . ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=2.3.6
+VERSION=2.4.11
 ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
 
@@ -55,9 +55,12 @@ tar -xvf $CWD/$NAME-$VERSION.tar.?z* || exit 3
 cd $SRC
 fix_source
 
+# Apply patches
+patch -b -z.orig -p1 < $CWD/${NAME}-${VERSION}.diff || exit 4
+
 # Configure
-CFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
-CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
+CFLAGS=$SLKCFLAGS \
+CXXFLAGS=$SLKCFLAGS \
 ./configure --arch=$ARCH \
             --target-os=linux \
             --prefix=/usr \
@@ -95,7 +98,7 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --enable-libmp3lame \
             --enable-libopencore-amrnb \
             --enable-libopencore-amrwb \
-            --enable-libopenjpeg \
+            --enable-libopenjp2 \
             --enable-libopus \
             --enable-libpulse \
             --enable-librtmp \
@@ -113,13 +116,13 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --enable-opengl \
             --enable-x11grab \
             --enable-zlib \
-            --disable-debug || exit 4
+            --disable-debug || exit 5
 
 #           --enable-libfaac # non-free
 
 # Build & install
-make V=1 -j4 || exit 5
-make V=1 DESTDIR=$PKG install || exit 6
+make V=1 -j4 || exit 6
+make V=1 DESTDIR=$PKG install || exit 7
 
 # Additionally install ffserver config file
 install -m 755 -d $PKG/etc
@@ -141,11 +144,13 @@ install -m 644 $CWD/slack-desc     $PKG/install/slack-desc
 install -m 644 $CWD/slack-required $PKG/install/slack-required
 install -m 644 $CWD/doinst.sh      $PKG/install/doinst.sh
 
-mkdir -p $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/slack-desc       $PKG/usr/src/slackbuilds/$NAME-$VERSION/slack-desc
-install -m 644 $CWD/slack-required   $PKG/usr/src/slackbuilds/$NAME-$VERSION/slack-required
-install -m 644 $CWD/doinst.sh        $PKG/usr/src/slackbuilds/$NAME-$VERSION/doinst.sh
-install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION/$NAME.SlackBuild
+SBDIR=$PKG/usr/src/slackbuilds/$NAME-$VERSION
+mkdir -p $SBDIR
+install -m 644 $CWD/slack-desc              $SBDIR/slack-desc
+install -m 644 $CWD/slack-required          $SBDIR/slack-required
+install -m 644 $CWD/doinst.sh               $SBDIR/doinst.sh
+install -m 644 $CWD/${NAME}-${VERSION}.diff $SBDIR/${NAME}-${VERSION}.diff
+install -m 644 $CWD/${NAME}.SlackBuild      $SBDIR/${NAME}.SlackBuild
 
 cd $PKG
 PKGNAME=$NAME-$VERSION-$ARCH-$BUILD$MYIN
