@@ -1,0 +1,503 @@
+# Enable FFmpeg build with OpenJPEG2 (conditional compilation)
+# Based on patches from https://trac.ffmpeg.org/ticket/2016
+# See example for replacement of file stream with byte stream
+# at https://groups.google.com/d/msg/openjpeg/8cebr0u7JgY/44K99wiXTKEJ
+diff -urNad ffmpeg-2.4.11-orig/configure ffmpeg-2.4.11/configure
+--- ffmpeg-2.4.11-orig/configure	2015-08-25 11:45:19.000000000 +0300
++++ ffmpeg-2.4.11/configure	2015-09-30 14:55:19.000000000 +0300
+@@ -225,6 +225,7 @@
+   --enable-libopencore-amrwb enable AMR-WB decoding via libopencore-amrwb [no]
+   --enable-libopencv       enable video filtering via libopencv [no]
+   --enable-libopenjpeg     enable JPEG 2000 de/encoding via OpenJPEG [no]
++  --enable-libopenjp2      enable JPEG 2000 de/encoding via OpenJPEG2 [no]
+   --enable-libopus         enable Opus de/encoding via libopus [no]
+   --enable-libpulse        enable Pulseaudio input via libpulse [no]
+   --enable-libquvi         enable quvi input via libquvi [no]
+@@ -1355,6 +1356,7 @@
+     libopencore_amrwb
+     libopencv
+     libopenjpeg
++    libopenjp2
+     libopus
+     libpulse
+     libquvi
+@@ -1635,7 +1637,7 @@
+     machine_ioctl_bt848_h
+     machine_ioctl_meteor_h
+     malloc_h
+# Define one or the other depending on what version is enabled
+-    openjpeg_1_5_openjpeg_h
++    openjpeg_2_1_openjpeg_h
+     OpenGL_gl3_h
+     poll_h
+     sndio_h
+@@ -2338,8 +2340,8 @@
+ libopencore_amrnb_encoder_deps="libopencore_amrnb"
+ libopencore_amrnb_encoder_select="audio_frame_queue"
+ libopencore_amrwb_decoder_deps="libopencore_amrwb"
+-libopenjpeg_decoder_deps="libopenjpeg"
+-libopenjpeg_encoder_deps="libopenjpeg"
++libopenjpeg_decoder_deps_any="libopenjpeg libopenjp"
++libopenjpeg_encoder_deps_any="libopenjpeg libopenjp"
+ libopus_decoder_deps="libopus"
+ libopus_encoder_deps="libopus"
+ libopus_encoder_select="audio_frame_queue"
+@@ -4832,6 +4834,10 @@
+ enabled libopenjpeg       && { check_lib openjpeg-1.5/openjpeg.h opj_version -lopenjpeg -DOPJ_STATIC ||
+                                check_lib openjpeg.h opj_version -lopenjpeg -DOPJ_STATIC ||
+                                die "ERROR: libopenjpeg not found"; }
++enabled libopenjp2        && { check_lib openjpeg-2.0/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC ||
++	                       check_lib openjpeg-2.1/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC ||
++                               check_lib openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC ||
++                               die "ERROR: libopenjp2 not found"; }
+ enabled libopus           && require_pkg_config opus opus_multistream.h opus_multistream_decoder_create
+ enabled libpulse          && require_pkg_config libpulse pulse/pulseaudio.h pa_context_new
+ enabled libquvi           && require_pkg_config libquvi quvi/quvi.h quvi_init
+diff -urNad ffmpeg-2.4.11-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.11/libavcodec/libopenjpegdec.c
+--- ffmpeg-2.4.11-orig/libavcodec/libopenjpegdec.c	2015-08-25 11:45:44.000000000 +0300
++++ ffmpeg-2.4.11/libavcodec/libopenjpegdec.c	2015-10-02 11:29:28.000000000 +0300
+@@ -36,11 +36,19 @@
+ #include "internal.h"
+ #include "thread.h"
+ 
+-#if HAVE_OPENJPEG_1_5_OPENJPEG_H
+-# include <openjpeg-1.5/openjpeg.h>
++#if defined HAVE_OPENJPEG_1_5_OPENJPEG_H
++#include <openjpeg-1.5/openjpeg.h>
+ #else
+-# include <openjpeg.h>
+-#endif
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H
++#include <openjpeg-2.0/openjpeg.h>
++#else
++#if defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++#include <openjpeg-2.1/openjpeg.h>
++#else
++#include <openjpeg.h>
++#endif /* 2.1 */
++#endif /* 2.0 */
++#endif /* 1.5 */
+ 
+ #define JP2_SIG_TYPE    0x6A502020
+ #define JP2_SIG_VALUE   0x0D0A870A
+@@ -129,15 +137,27 @@
+     int possible_fmts_nb = 0;
+ 
+     switch (image->color_space) {
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    case OPJ_CLRSPC_SRGB:
++#else
+     case CLRSPC_SRGB:
++#endif
+         possible_fmts    = libopenjpeg_rgb_pix_fmts;
+         possible_fmts_nb = FF_ARRAY_ELEMS(libopenjpeg_rgb_pix_fmts);
+         break;
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    case OPJ_CLRSPC_GRAY:
++#else
+     case CLRSPC_GRAY:
++#endif
+         possible_fmts    = libopenjpeg_gray_pix_fmts;
+         possible_fmts_nb = FF_ARRAY_ELEMS(libopenjpeg_gray_pix_fmts);
+         break;
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    case OPJ_CLRSPC_SYCC:
++#else
+     case CLRSPC_SYCC:
++#endif
+         possible_fmts    = libopenjpeg_yuv_pix_fmts;
+         possible_fmts_nb = FF_ARRAY_ELEMS(libopenjpeg_yuv_pix_fmts);
+         break;
+@@ -257,8 +277,13 @@
+     ThreadFrame frame       = { .f = data };
+     AVFrame *picture        = data;
+     const AVPixFmtDescriptor *desc;
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    opj_codec_t *dec;
++    opj_stream_t *stream;
++#else
+     opj_dinfo_t *dec;
+     opj_cio_t *stream;
++#endif
+     opj_image_t *image;
+     int width, height, ret;
+     int pixel_size = 0;
+@@ -271,40 +296,73 @@
+     if ((AV_RB32(buf) == 12) &&
+         (AV_RB32(buf + 4) == JP2_SIG_TYPE) &&
+         (AV_RB32(buf + 8) == JP2_SIG_VALUE)) {
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++        dec = opj_create_decompress(OPJ_CODEC_JP2);
++#else
++
+         dec = opj_create_decompress(CODEC_JP2);
++#endif
+     } else {
+         /* If the AVPacket contains a jp2c box, then skip to
+          * the starting byte of the codestream. */
+         if (AV_RB32(buf + 4) == AV_RB32("jp2c"))
+             buf += 8;
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++        dec = opj_create_decompress(OPJ_CODEC_J2K);
++#else
+         dec = opj_create_decompress(CODEC_J2K);
++#endif
+     }
+ 
+     if (!dec) {
+         av_log(avctx, AV_LOG_ERROR, "Error initializing decoder.\n");
+         return AVERROR_UNKNOWN;
+     }
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    opj_set_info_handler((opj_codec_t) dec, NULL, NULL);
++    opj_set_warning_handler((opj_codec_t) dec, NULL, NULL);
++    opj_set_error_handler((opj_codec_t) dec, NULL, NULL);
++    /* TODO: See if possible to limit decoding in 2.0 and above */
++#else
+     opj_set_event_mgr((opj_common_ptr) dec, NULL, NULL);
+     ctx->dec_params.cp_limit_decoding = LIMIT_TO_MAIN_HEADER;
++#endif
+     ctx->dec_params.cp_layer          = ctx->lowqual;
+     // Tie decoder with decoding parameters
+     opj_setup_decoder(dec, &ctx->dec_params);
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    /* TODO: Open stream */
++#else
+     stream = opj_cio_open((opj_common_ptr) dec, buf, buf_size);
++#endif
+ 
+     if (!stream) {
+         av_log(avctx, AV_LOG_ERROR,
+                "Codestream could not be opened for reading.\n");
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++        opj_destroy_codec(dec);
++#else
+         opj_destroy_decompress(dec);
++#endif
+         return AVERROR_UNKNOWN;
+     }
+ 
+     // Decode the header only.
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    opj_read_header(stream, dec, &image);
++    /* TODO: Close stream */
++#else
+     image = opj_decode_with_info(dec, stream, NULL);
+     opj_cio_close(stream);
++#endif
+ 
+     if (!image) {
+         av_log(avctx, AV_LOG_ERROR, "Error decoding codestream.\n");
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++        opj_destroy_codec(dec);
++#else
+         opj_destroy_decompress(dec);
++#endif
+         return AVERROR_UNKNOWN;
+     }
+ 
+@@ -333,11 +391,19 @@
+     if ((ret = ff_thread_get_buffer(avctx, &frame, 0)) < 0)
+         goto done;
+ 
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    /* TODO: See if possible/needed in 2.0 and above */
++#else
+     ctx->dec_params.cp_limit_decoding = NO_LIMITATION;
++#endif
+     ctx->dec_params.cp_reduce = avctx->lowres;
+     // Tie decoder with decoding parameters.
+     opj_setup_decoder(dec, &ctx->dec_params);
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    /* TODO: Open stream */
++#else
+     stream = opj_cio_open((opj_common_ptr) dec, buf, buf_size);
++#endif
+     if (!stream) {
+         av_log(avctx, AV_LOG_ERROR,
+                "Codestream could not be opened for reading.\n");
+@@ -347,8 +413,13 @@
+ 
+     opj_image_destroy(image);
+     // Decode the codestream
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    opj_decode(dec, stream, image);
++    /* TODO: Close stream */
++#else
+     image = opj_decode_with_info(dec, stream, NULL);
+     opj_cio_close(stream);
++#endif
+ 
+     if (!image) {
+         av_log(avctx, AV_LOG_ERROR, "Error decoding codestream.\n");
+@@ -407,7 +478,11 @@
+ 
+ done:
+     opj_image_destroy(image);
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    opj_destroy_codec(dec);
++#else
+     opj_destroy_decompress(dec);
++#endif
+     return ret;
+ }
+ 
+diff -urNad ffmpeg-2.4.11-orig/libavcodec/libopenjpegenc.c ffmpeg-2.4.11/libavcodec/libopenjpegenc.c
+--- ffmpeg-2.4.11-orig/libavcodec/libopenjpegenc.c	2015-07-31 03:22:16.000000000 +0300
++++ ffmpeg-2.4.11/libavcodec/libopenjpegenc.c	2015-10-02 11:30:00.000000000 +0300
+@@ -34,8 +34,12 @@
+ #include "avcodec.h"
+ #include "internal.h"
+ 
+-#if HAVE_OPENJPEG_1_5_OPENJPEG_H
++#if defined HAVE_OPENJPEG_1_5_OPENJPEG_H
+ # include <openjpeg-1.5/openjpeg.h>
++#elif defined HAVE_OPENJPEG_2_0_OPENJPEG_H
++# include <openjpeg-2.0/openjpeg.h>
++#elif defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++# include <openjpeg-2.1/openjpeg.h>
+ #else
+ # include <openjpeg.h>
+ #endif
+@@ -43,10 +47,19 @@
+ typedef struct {
+     AVClass *avclass;
+     opj_image_t *image;
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    opj_codec_t *stream;
++#else
+     opj_cio_t *stream;
++#endif
+     opj_cparameters_t enc_params;
++
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    opj_codec_t *compress;
++#else
+     opj_cinfo_t *compress;
+     opj_event_mgr_t event_mgr;
++#endif
+     int format;
+     int profile;
+     int prog_order;
+@@ -82,7 +95,11 @@
+     int sub_dx[4];
+     int sub_dy[4];
+     int numcomps;
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    OPJ_COLOR_SPACE color_space = OPJ_CLRSPC_UNKNOWN;
++#else
+     OPJ_COLOR_SPACE color_space = CLRSPC_UNKNOWN;
++#endif
+ 
+     sub_dx[0] = sub_dx[3] = 1;
+     sub_dy[0] = sub_dy[3] = 1;
+@@ -95,7 +112,11 @@
+     case AV_PIX_FMT_GRAY8:
+     case AV_PIX_FMT_YA8:
+     case AV_PIX_FMT_GRAY16:
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++        color_space = OPJ_CLRSPC_GRAY;
++#else
+         color_space = CLRSPC_GRAY;
++#endif
+         break;
+     case AV_PIX_FMT_RGB24:
+     case AV_PIX_FMT_RGBA:
+@@ -108,7 +129,11 @@
+     case AV_PIX_FMT_GBRP14:
+     case AV_PIX_FMT_GBRP16:
+     case AV_PIX_FMT_XYZ12:
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++        color_space = OPJ_CLRSPC_SRGB;
++#else
+         color_space = CLRSPC_SRGB;
++#endif
+         break;
+     case AV_PIX_FMT_YUV410P:
+     case AV_PIX_FMT_YUV411P:
+@@ -143,7 +168,11 @@
+     case AV_PIX_FMT_YUVA420P16:
+     case AV_PIX_FMT_YUVA422P16:
+     case AV_PIX_FMT_YUVA444P16:
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++        color_space = OPJ_CLRSPC_SYCC;
++#else
+         color_space = CLRSPC_SYCC;
++#endif
+         break;
+     default:
+         av_log(avctx, AV_LOG_ERROR,
+@@ -216,10 +245,17 @@
+         /* No ROI */
+         ctx->enc_params.roi_compno = -1;
+ 
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++        if (ctx->enc_params.prog_order != OPJ_CPRL) {
++            av_log(avctx, AV_LOG_ERROR, "prog_order forced to OPJ_CPRL\n");
++            ctx->enc_params.prog_order = OPJ_CPRL;
++        }
++#else
+         if (ctx->enc_params.prog_order != CPRL) {
+             av_log(avctx, AV_LOG_ERROR, "prog_order forced to CPRL\n");
+             ctx->enc_params.prog_order = CPRL;
+         }
++#endif
+         ctx->enc_params.tp_flag = 'C';
+         ctx->enc_params.tp_on = 1;
+     }
+@@ -238,7 +274,11 @@
+     }
+     opj_setup_encoder(ctx->compress, &ctx->enc_params, ctx->image);
+ 
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    /* TODO: Open stream */
++#else
+     ctx->stream = opj_cio_open((opj_common_ptr) ctx->compress, NULL, 0);
++#endif
+     if (!ctx->stream) {
+         av_log(avctx, AV_LOG_ERROR, "Error creating the cio stream\n");
+         err = AVERROR(ENOMEM);
+@@ -251,18 +291,32 @@
+         goto fail;
+     }
+ 
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    opj_set_info_handler((opj_codec_t)    ctx->compress, info_callback   , NULL);
++    opj_set_warning_handler((opj_codec_t) ctx->compress, warning_callback, NULL);
++    opj_set_error_handler((opj_codec_t)   ctx->compress, error_callback  , NULL);
++#else
+     memset(&ctx->event_mgr, 0, sizeof(opj_event_mgr_t));
+     ctx->event_mgr.info_handler    = info_callback;
+     ctx->event_mgr.error_handler = error_callback;
+     ctx->event_mgr.warning_handler = warning_callback;
+     opj_set_event_mgr((opj_common_ptr) ctx->compress, &ctx->event_mgr, avctx);
++#endif
+ 
+     return 0;
+ 
+ fail:
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    /* TODO: Close stream */
++#else
+     opj_cio_close(ctx->stream);
++#endif
+     ctx->stream = NULL;
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    opj_destroy_codec(ctx->compress);
++#else
+     opj_destroy_compress(ctx->compress);
++#endif
+     ctx->compress = NULL;
+     opj_image_destroy(ctx->image);
+     ctx->image = NULL;
+@@ -477,9 +531,17 @@
+                                     const AVFrame *frame, int *got_packet)
+ {
+     LibOpenJPEGContext *ctx = avctx->priv_data;
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    opj_codec_t *compress   = ctx->compress;
++#else
+     opj_cinfo_t *compress   = ctx->compress;
++#endif
+     opj_image_t *image      = ctx->image;
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    opj_stream_t *stream    = ctx->stream;
++#else
+     opj_cio_t *stream       = ctx->stream;
++#endif
+     int cpyresult = 0;
+     int ret, len;
+     AVFrame *gbrframe;
+@@ -572,18 +634,31 @@
+         return -1;
+     }
+ 
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    /* TODO: Seak stream to begining */
++    if (!opj_encode(compress, stream)) {
++#else
+     cio_seek(stream, 0);
+     if (!opj_encode(compress, stream, image, NULL)) {
++#endif
+         av_log(avctx, AV_LOG_ERROR, "Error during the opj encode\n");
+         return -1;
+     }
+ 
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    /* TODO: Get position in stream */
++#else
+     len = cio_tell(stream);
++#endif
+     if ((ret = ff_alloc_packet2(avctx, pkt, len)) < 0) {
+         return ret;
+     }
+ 
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    /* TODO: Copy buffer */
++#else
+     memcpy(pkt->data, stream->buffer, len);
++#endif
+     pkt->flags |= AV_PKT_FLAG_KEY;
+     *got_packet = 1;
+     return 0;
+@@ -593,9 +668,17 @@
+ {
+     LibOpenJPEGContext *ctx = avctx->priv_data;
+ 
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    /* TODO: Close stream */
++#else
+     opj_cio_close(ctx->stream);
++#endif
+     ctx->stream = NULL;
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++    opj_destroy_codec(ctx->compress);
++#else
+     opj_destroy_compress(ctx->compress);
++#endif
+     ctx->compress = NULL;
+     opj_image_destroy(ctx->image);
+     ctx->image = NULL;
+@@ -605,6 +688,34 @@
+ 
+ #define OFFSET(x) offsetof(LibOpenJPEGContext, x)
+ #define VE AV_OPT_FLAG_VIDEO_PARAM | AV_OPT_FLAG_ENCODING_PARAM
++#if defined HAVE_OPENJPEG_2_0_OPENJPEG_H || defined HAVE_OPENJPEG_2_1_OPENJPEG_H
++static const AVOption options[] = {
++    { "format",        "Codec Format",      OFFSET(format),        AV_OPT_TYPE_INT,   { .i64 = OPJ_CODEC_JP2   }, OPJ_CODEC_J2K, OPJ_CODEC_JP2,   VE, "format"      },
++    { "j2k",           NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_CODEC_J2K   }, 0,             0,               VE, "format"      },
++    { "jp2",           NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_CODEC_JP2   }, 0,             0,               VE, "format"      },
++    { "profile",       NULL,                OFFSET(profile),       AV_OPT_TYPE_INT,   { .i64 = OPJ_STD_RSIZ    }, OPJ_STD_RSIZ,  OPJ_CINEMA4K,    VE, "profile"     },
++    { "jpeg2000",      NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_STD_RSIZ    }, 0,             0,               VE, "profile"     },
++    { "cinema2k",      NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_CINEMA2K    }, 0,             0,               VE, "profile"     },
++    { "cinema4k",      NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_CINEMA4K    }, 0,             0,               VE, "profile"     },
++    { "cinema_mode",   "Digital Cinema",    OFFSET(cinema_mode),   AV_OPT_TYPE_INT,   { .i64 = OPJ_OFF         }, OPJ_OFF,       OPJ_CINEMA4K_24, VE, "cinema_mode" },
++    { "off",           NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_OFF         }, 0,             0,               VE, "cinema_mode" },
++    { "2k_24",         NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_CINEMA2K_24 }, 0,             0,               VE, "cinema_mode" },
++    { "2k_48",         NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_CINEMA2K_48 }, 0,             0,               VE, "cinema_mode" },
++    { "4k_24",         NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_CINEMA4K_24 }, 0,             0,               VE, "cinema_mode" },
++    { "prog_order",    "Progression Order", OFFSET(prog_order),    AV_OPT_TYPE_INT,   { .i64 = OPJ_LRCP        }, OPJ_LRCP,      OPJ_CPRL,        VE, "prog_order"  },
++    { "lrcp",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_LRCP        }, 0,             0,               VE, "prog_order"  },
++    { "rlcp",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_RLCP        }, 0,             0,               VE, "prog_order"  },
++    { "rpcl",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_RPCL        }, 0,             0,               VE, "prog_order"  },
++    { "pcrl",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_PCRL        }, 0,             0,               VE, "prog_order"  },
++    { "cprl",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ_CPRL        }, 0,             0,               VE, "prog_order"  },
++    { "numresolution", NULL,                OFFSET(numresolution), AV_OPT_TYPE_INT,   { .i64 = 6               }, 1,             INT_MAX,         VE                },
++    { "numlayers",     NULL,                OFFSET(numlayers),     AV_OPT_TYPE_INT,   { .i64 = 1               }, 1,             10,              VE                },
++    { "disto_alloc",   NULL,                OFFSET(disto_alloc),   AV_OPT_TYPE_INT,   { .i64 = 1               }, 0,             1,               VE                },
++    { "fixed_alloc",   NULL,                OFFSET(fixed_alloc),   AV_OPT_TYPE_INT,   { .i64 = 0               }, 0,             1,               VE                },
++    { "fixed_quality", NULL,                OFFSET(fixed_quality), AV_OPT_TYPE_INT,   { .i64 = 0               }, 0,             1,               VE                },
++    { NULL },
++};
++#else
+ static const AVOption options[] = {
+     { "format",        "Codec Format",      OFFSET(format),        AV_OPT_TYPE_INT,   { .i64 = CODEC_JP2   }, CODEC_J2K, CODEC_JP2,   VE, "format"      },
+     { "j2k",           NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = CODEC_J2K   }, 0,         0,           VE, "format"      },
+@@ -631,6 +742,7 @@
+     { "fixed_quality", NULL,                OFFSET(fixed_quality), AV_OPT_TYPE_INT,   { .i64 = 0           }, 0,         1,           VE                },
+     { NULL },
+ };
++#endif
+ 
+ static const AVClass openjpeg_class = {
+     .class_name = "libopenjpeg",
