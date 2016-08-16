@@ -7,10 +7,10 @@
 # the source code and builds a package for the current date.
 #
 
-. ../slack-package.conf
+. ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=`date +%Y%m%d`
+VERSION=${VERSION:-`date +%Y%m%d`}
 ARCH=${ARCH:-i486}
 BUILD=1
 
@@ -35,14 +35,18 @@ if [ -e $PKG -a -d $PKG ]; then
 fi
 mkdir -p $PKG
 
-# Check out, backup and fix source
+# Check out, backup and fix source (if source archive not present)
 cd $TMP
-svn checkout svn://svn.mplayerhq.hu/ffmpeg/trunk ffmpeg
-mv $NAME $NAME-$VERSION
+if [ ! -e $CWD/$NAME-$VERSION.tar.?z* ]; then
+  svn checkout svn://svn.mplayerhq.hu/ffmpeg/trunk ffmpeg || exit 3
+  mv $NAME $NAME-$VERSION
 
-tar -cf $NAME-$VERSION.tar $NAME-$VERSION
-bzip2 $NAME-$VERSION.tar
-mv $NAME-$VERSION.tar.bz2 $CWD
+  tar -cf $NAME-$VERSION.tar $NAME-$VERSION
+  bzip2 $NAME-$VERSION.tar
+  mv $NAME-$VERSION.tar.bz2 $CWD
+else
+  tar -xvf $CWD/$NAME-$VERSION.tar.?z* || exit 3
+fi
 
 cd $SRC
 fix_source
@@ -52,6 +56,7 @@ CXXFLAGS=$SLKCFLAGS \
 ./configure --arch=$ARCH \
             --target-os=linux \
             --prefix=/usr \
+            --libdir=/usr/lib${LIBDIRSUFFIX} \
             --mandir=/usr/man \
             --disable-debug \
             --enable-shared \
@@ -84,6 +89,8 @@ PKG="$TMP/package-$NAME"
 mkdir -p $PKG
 
 make DESTDIR=$PKG install || exit 3
+# Move libs in the right place
+( cd $PKG/usr; mv lib/* lib64/; rmdir lib )
 # Additionally install ffserver config file
 install -m 755 -d $PKG/etc
 install -m 644 doc/ffserver.conf $PKG/etc/ffserver.conf.new
