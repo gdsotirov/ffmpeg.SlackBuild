@@ -10,9 +10,9 @@
 . ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=${VERSION:-`date +%Y%m%d`}
+VERSION=0.6.7
 ARCH=${ARCH:-i486}
-BUILD=1
+BUILD=${BUILD:-1}
 
 TMP=${TMP:-/tmp}
 CWD=${CWD:-`pwd`}
@@ -37,17 +37,7 @@ mkdir -p $PKG
 
 # Check out, backup and fix source (if source archive not present)
 cd $TMP
-if [ ! -e $CWD/$NAME-$VERSION.tar.?z* ]; then
-  svn checkout svn://svn.mplayerhq.hu/ffmpeg/trunk ffmpeg || exit 3
-  mv $NAME $NAME-$VERSION
-
-  tar -cf $NAME-$VERSION.tar $NAME-$VERSION
-  bzip2 $NAME-$VERSION.tar
-  mv $NAME-$VERSION.tar.bz2 $CWD
-else
-  tar -xvf $CWD/$NAME-$VERSION.tar.?z* || exit 3
-fi
-
+tar -xvf $CWD/$NAME-$VERSION.tar.?z* || exit 3
 cd $SRC
 fix_source
 
@@ -69,26 +59,32 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-x11grab \
             --enable-runtime-cpudetect \
             --enable-bzlib \
+            --enable-libopencore-amrnb \
+            --enable-libopencore-amrwb \
+            --enable-version3 \
             --enable-libdc1394 \
             --enable-libdirac \
             --enable-libfaad \
+            --enable-libgsm \
             --enable-libmp3lame \
+            --enable-libopenjpeg \
+            --enable-librtmp \
+            --enable-libschroedinger \
             --enable-libspeex \
             --enable-libtheora \
             --enable-libvorbis \
+            --enable-libvpx \
             --enable-libx264 \
             --enable-libxvid \
-            --enable-zlib || exit 1
+            --enable-zlib || exit 4
 #           --enable-libfaac \   # non-free
 #           --enable-libamr-nb \ # non-free
 #           --enable-libamr-wb \ # non-free
 
-make -j4 || exit 2
+# Build & install
+make V=1 -j4 || exit 5
+make V=1 DESTDIR=$PKG install || exit 6
 
-PKG="$TMP/package-$NAME"
-mkdir -p $PKG
-
-make DESTDIR=$PKG install || exit 3
 # Move libs in the right place
 ( cd $PKG/usr; mv lib/* lib64/; rmdir lib )
 # Additionally install ffserver config file
