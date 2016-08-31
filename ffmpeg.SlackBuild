@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Slackware build script for FFmpeg
-# Copyright (C) 2008-2015 Georgi D. Sotirov <gdsotirov@dir.bg>
+# Copyright (C) 2008-2016 Georgi D. Sotirov <gdsotirov@dir.bg>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,13 +19,13 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.15 2015/05/16 15:42:56 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.15.4.1 2016/08/31 13:21:53 gsotirov Exp $
 #
 
 . ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=0.11.5
+VERSION=0.10.16
 ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
 
@@ -104,16 +104,21 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
 
 # Build & install
 make V=1 -j4 || exit 5
-make DESTDIR=$PKG install || exit 6
+make V=1 DESTDIR=$PKG install || exit 6
 
 # Additionally install ffserver config file
 install -m 755 -d $PKG/etc
 install -m 644 doc/ffserver.conf $PKG/etc/ffserver.conf.new
 
+# Move libraries in the right place
+if [ "$ARCH" == "x86_64" ]; then
+  ( cd $PKG; mv usr/lib/* usr/lib${LIBDIRSUFFIX}/; rmdir usr/lib )
+fi
+
 bin_perms $PKG
-(cd $PKG; strip_bin; strip_lib)
+( cd $PKG; strip_bin; strip_lib )
 DOCFILES="$DOCFILES COPYING* MAINTAINERS"
-(cd $SRC; create_docs $PKG $NAME-$VERSION)
+( cd $SRC; create_docs $PKG $NAME-$VERSION )
 ( cd $PKG/usr/doc/$NAME-$VERSION; cp -a COPYING.GPLv3 COPYING )
 gzip_man $PKG
 
