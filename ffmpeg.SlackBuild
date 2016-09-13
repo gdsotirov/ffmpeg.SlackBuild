@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Slackware build script for FFmpeg
-# Copyright (C) 2007-2015 Georgi D. Sotirov <gdsotirov@dir.bg>
+# Copyright (C) 2007-2016 Georgi D. Sotirov <gdsotirov@dir.bg>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,13 +19,13 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.25 2015/09/30 09:21:17 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.26 2016/09/13 20:18:53 gsotirov Exp $
 #
 
 . ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=2.4.11
+VERSION=2.4.13
 ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
 
@@ -56,7 +56,9 @@ cd $SRC
 fix_source
 
 # Apply patches
-patch -b -z.orig -p1 < $CWD/${NAME}-${VERSION}.diff || exit 4
+if [ -e $CWD/${NAME}-${VERSION}.diff ]; then
+  patch -b -z.orig -p1 < $CWD/${NAME}-${VERSION}.diff || exit 4
+fi
 
 # Configure
 CFLAGS=$SLKCFLAGS \
@@ -86,33 +88,40 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-bzlib \
             --enable-fontconfig \
             --enable-gnutls \
+            --enable-iconv \
             --enable-ladspa \
             --enable-libass \
+            --enable-libbluray \
             --enable-libcaca \
             --enable-libcelt \
             --enable-libcdio \
             --enable-libdc1394 \
             --enable-libfreetype \
+            --enable-libfribidi \
             --enable-libgsm \
             --enable-libiec61883 \
+            --enable-libmodplug \
             --enable-libmp3lame \
             --enable-libopencore-amrnb \
             --enable-libopencore-amrwb \
-            --enable-libopenjp2 \
+            --enable-libopenjpeg \
             --enable-libopus \
             --enable-libpulse \
             --enable-librtmp \
             --enable-libschroedinger \
+            --enable-libsmbclient \
             --enable-libspeex \
             --enable-libssh \
             --enable-libtheora \
             --enable-libtwolame \
+            --enable-libv4l2 \
             --enable-libvorbis \
             --enable-libvpx \
             --enable-libwebp \
             --enable-libx264 \
             --enable-libxvid \
             --enable-libzvbi \
+            --enable-lzma \
             --enable-opengl \
             --enable-x11grab \
             --enable-zlib \
@@ -149,7 +158,9 @@ mkdir -p $SBDIR
 install -m 644 $CWD/slack-desc              $SBDIR/slack-desc
 install -m 644 $CWD/slack-required          $SBDIR/slack-required
 install -m 644 $CWD/doinst.sh               $SBDIR/doinst.sh
-install -m 644 $CWD/${NAME}-${VERSION}.diff $SBDIR/${NAME}-${VERSION}.diff
+if [ -e $CWD/${NAME}-${VERSION}.diff ]; then
+  install -m 644 $CWD/${NAME}-${VERSION}.diff $SBDIR/${NAME}-${VERSION}.diff
+fi
 install -m 644 $CWD/${NAME}.SlackBuild      $SBDIR/${NAME}.SlackBuild
 
 cd $PKG
