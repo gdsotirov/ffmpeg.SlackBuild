@@ -19,7 +19,7 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.18.2.3 2015/05/31 15:54:59 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.18.2.4 2016/09/13 07:05:51 gsotirov Exp $
 #
 
 . ../../slack-package.conf
@@ -75,14 +75,19 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --enable-avdevice \
             --enable-avcodec \
             --enable-avformat \
+            --enable-avutil \
             --enable-swscale \
             --enable-postproc \
             --enable-avfilter \
+            --enable-avresample \
             --enable-pthreads \
             --enable-runtime-cpudetect \
             --enable-bzlib \
             --enable-fontconfig \
+            --enable-gnutls \
+            --enable-iconv \
             --enable-libass \
+            --enable-libbluray \
             --enable-libcaca \
             --enable-libcelt \
             --enable-libcdio \
@@ -90,6 +95,7 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --enable-libfreetype \
             --enable-libgsm \
             --enable-libiec61883 \
+            --enable-libmodplug \
             --enable-libmp3lame \
             --enable-libopencore-amrnb \
             --enable-libopencore-amrwb \
@@ -110,6 +116,7 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --disable-debug || exit 4
 
 #           --enable-libfaac # non-free
+#           --enable-openssl # non-free
 
 # Build & install
 make V=1 -j4 || exit 5
