@@ -19,7 +19,7 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.18.2.4 2016/09/13 07:05:51 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.18.2.5 2016/09/14 21:21:27 gsotirov Exp $
 #
 
 . ../../slack-package.conf
@@ -67,23 +67,25 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --disable-static \
             --enable-gpl \
             --enable-version3 \
-            --enable-doc \
+            --enable-runtime-cpudetect \
             --enable-ffmpeg \
             --enable-ffplay \
             --enable-ffprobe \
             --enable-ffserver \
+            --enable-doc \
             --enable-avdevice \
             --enable-avcodec \
             --enable-avformat \
             --enable-avutil \
+            --enable-swresample \
             --enable-swscale \
             --enable-postproc \
             --enable-avfilter \
             --enable-avresample \
             --enable-pthreads \
-            --enable-runtime-cpudetect \
             --enable-bzlib \
             --enable-fontconfig \
+            --enable-frei0r \
             --enable-gnutls \
             --enable-iconv \
             --enable-libass \
@@ -92,9 +94,11 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --enable-libcelt \
             --enable-libcdio \
             --enable-libdc1394 \
+            --enable-libflite \
             --enable-libfreetype \
             --enable-libgsm \
             --enable-libiec61883 \
+            --enable-libilbc \
             --enable-libmodplug \
             --enable-libmp3lame \
             --enable-libopencore-amrnb \
@@ -107,6 +111,7 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --enable-libspeex \
             --enable-libtheora \
             --enable-libtwolame \
+            --enable-libv4l2 \
             --enable-libvorbis \
             --enable-libvpx \
             --enable-libx264 \
@@ -115,8 +120,9 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --enable-zlib \
             --disable-debug || exit 4
 
-#           --enable-libfaac # non-free
-#           --enable-openssl # non-free
+#           --enable-libaacplus # non-free
+#           --enable-libfaac    # non-free
+#           --enable-openssl    # non-free
 
 # Build & install
 make V=1 -j4 || exit 5
