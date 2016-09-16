@@ -19,13 +19,13 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.26 2016/09/13 20:18:53 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.27 2016/09/16 16:05:22 gsotirov Exp $
 #
 
 . ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=2.4.13
+VERSION=2.5.11
 ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
 
@@ -68,38 +68,47 @@ CXXFLAGS=$SLKCFLAGS \
             --prefix=/usr \
             --libdir=/usr/lib${LIBDIRSUFFIX} \
             --mandir=/usr/man \
-            --enable-shared \
-            --disable-static \
+            --docdir=/usr/doc/${NAME}-${VERSION} \
             --enable-gpl \
             --enable-version3 \
-            --enable-doc \
+            --disable-static \
+            --enable-shared \
+            --enable-runtime-cpudetect \
             --enable-ffmpeg \
             --enable-ffplay \
             --enable-ffprobe \
             --enable-ffserver \
+            --enable-doc \
             --enable-avdevice \
             --enable-avcodec \
             --enable-avformat \
+            --enable-avutil \
+            --enable-swresample \
             --enable-swscale \
             --enable-postproc \
             --enable-avfilter \
+            --enable-avresample \
             --enable-pthreads \
-            --enable-runtime-cpudetect \
             --enable-bzlib \
             --enable-fontconfig \
+            --enable-frei0r \
             --enable-gnutls \
             --enable-iconv \
             --enable-ladspa \
             --enable-libass \
             --enable-libbluray \
+            --enable-libbs2b \
             --enable-libcaca \
             --enable-libcelt \
             --enable-libcdio \
             --enable-libdc1394 \
+            --enable-libflite \
             --enable-libfreetype \
             --enable-libfribidi \
+            --enable-libgme \
             --enable-libgsm \
             --enable-libiec61883 \
+            --enable-libilbc \
             --enable-libmodplug \
             --enable-libmp3lame \
             --enable-libopencore-amrnb \
@@ -107,9 +116,11 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libopenjpeg \
             --enable-libopus \
             --enable-libpulse \
+            --enable-libquvi \
             --enable-librtmp \
             --enable-libschroedinger \
             --enable-libsmbclient \
+            --enable-libsoxr \
             --enable-libspeex \
             --enable-libssh \
             --enable-libtheora \
@@ -119,15 +130,21 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libvpx \
             --enable-libwebp \
             --enable-libx264 \
+            --enable-libx265 \
+            --enable-libxcb \
             --enable-libxvid \
             --enable-libzvbi \
             --enable-lzma \
             --enable-opengl \
+            --enable-sdl \
             --enable-x11grab \
             --enable-zlib \
             --disable-debug || exit 5
 
-#           --enable-libfaac # non-free
+#           --enable-libaacplus # non-free
+#           --enable-libfaac    # non-free
+#           --enable-libfdk-aac # non-free
+#           --enable-openssl    # non-free
 
 # Build & install
 make V=1 -j4 || exit 6
