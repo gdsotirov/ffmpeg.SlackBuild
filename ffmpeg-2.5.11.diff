@@ -1,14 +1,14 @@
-# Backport revision 99eabcdd5f904e98a02184889ab84cc9d5c17a8c from git://source.ffmpeg.org/ffmpeg.git to FFmpeg 2.4.13
+# Backport revision 99eabcdd5f904e98a02184889ab84cc9d5c17a8c from git://source.ffmpeg.org/ffmpeg.git to FFmpeg 2.5.11
 # Written by Georgi D. Sotirov (gdsotirov@dir.bg)
 # See https://github.com/FFmpeg/FFmpeg/commit/12a83bc0aa4bf680805757fd5e025adf3b16c526
 # See https://github.com/FFmpeg/FFmpeg/commit/1f13348f7d1049fe9be2897d8cd88024db233bda
 # See https://github.com/FFmpeg/FFmpeg/commit/ecc92ee717eac18540e236ee27e9052cd2917800
 # See https://github.com/FFmpeg/FFmpeg/commit/99eabcdd5f904e98a02184889ab84cc9d5c17a8c
 # Fix build issue (see https://trac.ffmpeg.org/ticket/5694)
-diff -urNad ffmpeg-2.4.13-orig/configure ffmpeg-2.4.13/configure
---- ffmpeg-2.4.13-orig/configure	2016-02-02 19:15:05.000000000 +0200
-+++ ffmpeg-2.4.13/configure	2016-09-13 22:33:53.000000000 +0300
-@@ -1635,6 +1635,8 @@
+diff -urNad ffmpeg-2.5.11-orig/configure ffmpeg-2.5.11/configure
+--- ffmpeg-2.5.11-orig/configure	2016-02-02 22:42:05.000000000 +0200
++++ ffmpeg-2.5.11/configure	2016-09-14 12:16:59.000000000 +0300
+@@ -1650,6 +1650,8 @@
      machine_ioctl_bt848_h
      machine_ioctl_meteor_h
      malloc_h
@@ -17,11 +17,12 @@ diff -urNad ffmpeg-2.4.13-orig/configure ffmpeg-2.4.13/configure
      openjpeg_1_5_openjpeg_h
      OpenGL_gl3_h
      poll_h
-@@ -4829,8 +4831,10 @@
+@@ -4877,9 +4879,10 @@
  enabled libopencore_amrnb && require libopencore_amrnb opencore-amrnb/interf_dec.h Decoder_Interface_init -lopencore-amrnb
  enabled libopencore_amrwb && require libopencore_amrwb opencore-amrwb/dec_if.h D_IF_init -lopencore-amrwb
  enabled libopencv         && require_pkg_config opencv opencv/cxcore.h cvCreateImageHeader
--enabled libopenjpeg       && { check_lib openjpeg-1.5/openjpeg.h opj_version -lopenjpeg -DOPJ_STATIC ||
+-enabled libopenjpeg       && { check_lib openjpeg.h opj_version -lopenmj2 -DOPJ_STATIC ||
+-                               check_lib openjpeg-1.5/openjpeg.h opj_version -lopenjpeg -DOPJ_STATIC ||
 -                               check_lib openjpeg.h opj_version -lopenjpeg -DOPJ_STATIC ||
 +enabled libopenjpeg       && { check_lib openjpeg-2.1/openjpeg.h opj_version -lopenjp2 ||
 +                               check_lib openjpeg-2.0/openjpeg.h opj_version -lopenjp2 ||
@@ -30,9 +31,9 @@ diff -urNad ffmpeg-2.4.13-orig/configure ffmpeg-2.4.13/configure
                                 die "ERROR: libopenjpeg not found"; }
  enabled libopus           && require_pkg_config opus opus_multistream.h opus_multistream_decoder_create
  enabled libpulse          && require_pkg_config libpulse pulse/pulseaudio.h pa_context_new
-diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavcodec/libopenjpegdec.c
---- ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c	2016-02-02 19:14:41.000000000 +0200
-+++ ffmpeg-2.4.13/libavcodec/libopenjpegdec.c	2016-09-13 22:34:57.000000000 +0300
+diff -urNad ffmpeg-2.5.11-orig/libavcodec/libopenjpegdec.c ffmpeg-2.5.11/libavcodec/libopenjpegdec.c
+--- ffmpeg-2.5.11-orig/libavcodec/libopenjpegdec.c	2016-02-02 19:14:41.000000000 +0200
++++ ffmpeg-2.5.11/libavcodec/libopenjpegdec.c	2016-09-14 14:22:48.000000000 +0300
 @@ -24,8 +24,6 @@
   * JPEG 2000 decoder using libopenjpeg
   */
@@ -64,7 +65,7 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
 +#  define OPJ(x) OPJ_##x
 +#else
 +#  define OPENJPEG_MAJOR_VERSION 1
-+#  define OPJ(x) x 
++#  define OPJ(x) x
  #endif
  
  #define JP2_SIG_TYPE    0x6A502020
@@ -171,12 +172,18 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
          possible_fmts    = libopenjpeg_yuv_pix_fmts;
          possible_fmts_nb = FF_ARRAY_ELEMS(libopenjpeg_yuv_pix_fmts);
          break;
-@@ -257,8 +341,14 @@
+@@ -257,13 +341,19 @@
      ThreadFrame frame       = { .f = data };
      AVFrame *picture        = data;
      const AVPixFmtDescriptor *desc;
 -    opj_dinfo_t *dec;
 -    opj_cio_t *stream;
+-    opj_image_t *image;
+     int width, height, ret;
+     int pixel_size = 0;
+     int ispacked   = 0;
+     int i;
++    opj_image_t *image = NULL;
 +#if OPENJPEG_MAJOR_VERSION == 1
 +    opj_dinfo_t *dec = NULL;
 +    opj_cio_t *stream = NULL;
@@ -184,11 +191,11 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
 +    BufferReader reader = {0, avpkt->size, avpkt->data};
 +    opj_codec_t *dec = NULL;
 +    opj_stream_t *stream = NULL;
-+#endif // OPENJPEG_MAJOR_VERSION == 1 
-     opj_image_t *image;
-     int width, height, ret;
-     int pixel_size = 0;
-@@ -271,41 +361,82 @@
++#endif // OPENJPEG_MAJOR_VERSION == 1
+ 
+     *got_frame = 0;
+ 
+@@ -271,41 +361,84 @@
      if ((AV_RB32(buf) == 12) &&
          (AV_RB32(buf + 4) == JP2_SIG_TYPE) &&
          (AV_RB32(buf + 8) == JP2_SIG_VALUE)) {
@@ -207,11 +214,9 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
          av_log(avctx, AV_LOG_ERROR, "Error initializing decoder.\n");
 -        return AVERROR_UNKNOWN;
 +        ret = AVERROR_EXTERNAL;
-+        goto done; 
++        goto done;
      }
 -    opj_set_event_mgr((opj_common_ptr) dec, NULL, NULL);
--    ctx->dec_params.cp_limit_decoding = LIMIT_TO_MAIN_HEADER;
--    ctx->dec_params.cp_layer          = ctx->lowqual;
 +
 +#if OPENJPEG_MAJOR_VERSION == 1
 +    memset(&ctx->event_mgr, 0, sizeof(ctx->event_mgr));
@@ -219,6 +224,8 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
 +    ctx->event_mgr.error_handler   = error_callback;
 +    ctx->event_mgr.warning_handler = warning_callback;
 +    opj_set_event_mgr((opj_common_ptr) dec, &ctx->event_mgr, avctx);
+     ctx->dec_params.cp_limit_decoding = LIMIT_TO_MAIN_HEADER;
+     ctx->dec_params.cp_layer          = ctx->lowqual;
 +#else // OPENJPEG_MAJOR_VERSION == 2
 +    if (!opj_set_error_handler(dec, error_callback, avctx) ||
 +        !opj_set_warning_handler(dec, warning_callback, avctx) ||
@@ -239,7 +246,7 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
      stream = opj_cio_open((opj_common_ptr) dec, buf, buf_size);
 +#else // OPENJPEG_MAJOR_VERSION == 2
 +    stream = opj_stream_default_create(OPJ_STREAM_READ);
-+#endif // OPENJPEG_MAJOR_VERSION == 1 
++#endif // OPENJPEG_MAJOR_VERSION == 1
  
      if (!stream) {
          av_log(avctx, AV_LOG_ERROR,
@@ -247,7 +254,7 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
 -        opj_destroy_decompress(dec);
 -        return AVERROR_UNKNOWN;
 +        ret = AVERROR_EXTERNAL;
-+        goto done; 
++        goto done;
      }
  
 +#if OPENJPEG_MAJOR_VERSION == 1
@@ -270,7 +277,7 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
 +    opj_stream_set_user_data_length(stream, avpkt->size);
 +    // Decode the header only.
 +    ret = !opj_read_header(stream, dec, &image);
-+#endif // OPENJPEG_MAJOR_VERSION == 1 
++#endif // OPENJPEG_MAJOR_VERSION == 1
  
 -    if (!image) {
 -        av_log(avctx, AV_LOG_ERROR, "Error decoding codestream.\n");
@@ -283,25 +290,25 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
      }
  
      width  = image->x1 - image->x0;
-@@ -323,7 +454,8 @@
+@@ -323,7 +456,8 @@
          avctx->pix_fmt = libopenjpeg_guess_pix_fmt(image);
  
      if (avctx->pix_fmt == AV_PIX_FMT_NONE) {
 -        av_log(avctx, AV_LOG_ERROR, "Unable to determine pixel format\n");
 +        av_log(avctx, AV_LOG_ERROR, "Unable to determine pixel format.\n");
-+        ret = AVERROR_UNKNOWN; 
++        ret = AVERROR_UNKNOWN;
          goto done;
      }
      for (i = 0; i < image->numcomps; i++)
-@@ -333,6 +465,7 @@
+@@ -333,6 +467,7 @@
      if ((ret = ff_thread_get_buffer(avctx, &frame, 0)) < 0)
          goto done;
  
-+ #if OPENJPEG_MAJOR_VERSION == 1
++#if OPENJPEG_MAJOR_VERSION == 1
      ctx->dec_params.cp_limit_decoding = NO_LIMITATION;
      ctx->dec_params.cp_reduce = avctx->lowres;
      // Tie decoder with decoding parameters.
-@@ -341,18 +474,21 @@
+@@ -341,18 +476,20 @@
      if (!stream) {
          av_log(avctx, AV_LOG_ERROR,
                 "Codestream could not be opened for reading.\n");
@@ -309,7 +316,7 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
 +        ret = AVERROR_EXTERNAL;
          goto done;
      }
- 
+-
      opj_image_destroy(image);
      // Decode the codestream
      image = opj_decode_with_info(dec, stream, NULL);
@@ -317,7 +324,7 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
 +    ret = !image;
 +#else // OPENJPEG_MAJOR_VERSION == 2
 +    ret = !opj_decode(dec, stream, image);
-+#endif // OPENJPEG_MAJOR_VERSION == 1 
++#endif // OPENJPEG_MAJOR_VERSION == 1
  
 -    if (!image) {
 +    if (ret) {
@@ -327,7 +334,7 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
          goto done;
      }
  
-@@ -407,7 +543,13 @@
+@@ -407,7 +544,13 @@
  
  done:
      opj_image_destroy(image);
@@ -335,15 +342,15 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegdec.c ffmpeg-2.4.13/libavco
 +    opj_stream_destroy(stream);
 +    opj_destroy_codec(dec);
 +#else
-+    opj_cio_close(stream); 
++    opj_cio_close(stream);
      opj_destroy_decompress(dec);
 +#endif
      return ret;
  }
  
-diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegenc.c ffmpeg-2.4.13/libavcodec/libopenjpegenc.c
---- ffmpeg-2.4.13-orig/libavcodec/libopenjpegenc.c	2016-02-02 19:14:41.000000000 +0200
-+++ ffmpeg-2.4.13/libavcodec/libopenjpegenc.c	2016-09-13 22:35:08.000000000 +0300
+diff -urNad ffmpeg-2.5.11-orig/libavcodec/libopenjpegenc.c ffmpeg-2.5.11/libavcodec/libopenjpegenc.c
+--- ffmpeg-2.5.11-orig/libavcodec/libopenjpegenc.c	2016-02-02 19:14:41.000000000 +0200
++++ ffmpeg-2.5.11/libavcodec/libopenjpegenc.c	2016-09-14 14:24:10.000000000 +0300
 @@ -24,8 +24,6 @@
   * JPEG 2000 encoder using libopenjpeg
   */
@@ -368,16 +375,16 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegenc.c ffmpeg-2.4.13/libavco
  #else
 -# include <openjpeg.h>
 +#  include <openjpeg.h>
- #endif
- 
++#endif
++
 +#if HAVE_OPENJPEG_2_1_OPENJPEG_H || HAVE_OPENJPEG_2_0_OPENJPEG_H
 +#  define OPENJPEG_MAJOR_VERSION 2
 +#  define OPJ(x) OPJ_##x
 +#else
 +#  define OPENJPEG_MAJOR_VERSION 1
 +#  define OPJ(x) x
-+#endif 
-+
+ #endif
+ 
  typedef struct {
      AVClass *avclass;
      opj_image_t *image;
@@ -386,7 +393,7 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegenc.c ffmpeg-2.4.13/libavco
 -    opj_cinfo_t *compress;
 +#if OPENJPEG_MAJOR_VERSION == 1
      opj_event_mgr_t event_mgr;
-+#endif // OPENJPEG_MAJOR_VERSION == 1
++#endif
      int format;
      int profile;
      int prog_order;
@@ -505,17 +512,7 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegenc.c ffmpeg-2.4.13/libavco
          break;
      default:
          av_log(avctx, AV_LOG_ERROR,
-@@ -164,9 +246,6 @@
- 
-     img = opj_image_create(numcomps, cmptparm, color_space);
- 
--    if (!img)
--        return NULL;
--
-     // x0, y0 is the top left corner of the image
-     // x1, y1 is the width, height of the reference grid
-     img->x0 = 0;
-@@ -180,13 +259,57 @@
+@@ -180,13 +262,57 @@
  static av_cold int libopenjpeg_encode_init(AVCodecContext *avctx)
  {
      LibOpenJPEGContext *ctx = avctx->priv_data;
@@ -575,7 +572,7 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegenc.c ffmpeg-2.4.13/libavco
      ctx->enc_params.prog_order = ctx->prog_order;
      ctx->enc_params.numresolution = ctx->numresolution;
      ctx->enc_params.cp_disto_alloc = ctx->disto_alloc;
-@@ -216,57 +339,26 @@
+@@ -216,57 +342,26 @@
          /* No ROI */
          ctx->enc_params.roi_compno = -1;
  
@@ -635,15 +632,16 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegenc.c ffmpeg-2.4.13/libavco
      return err;
  }
  
-@@ -477,11 +569,17 @@
+@@ -477,11 +572,17 @@
                                      const AVFrame *frame, int *got_packet)
  {
      LibOpenJPEGContext *ctx = avctx->priv_data;
 -    opj_cinfo_t *compress   = ctx->compress;
      opj_image_t *image      = ctx->image;
+-    opj_cio_t *stream       = ctx->stream;
 +#if OPENJPEG_MAJOR_VERSION == 1
-+    opj_cinfo_t *compress   = ctx->compress;
-     opj_cio_t *stream       = ctx->stream;
++    opj_cinfo_t *compress   = NULL;
++    opj_cio_t *stream       = NULL;
 +    int len;
 +#else // OPENJPEG_MAJOR_VERSION == 2
 +    opj_codec_t *compress   = NULL;
@@ -655,17 +653,17 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegenc.c ffmpeg-2.4.13/libavco
      AVFrame *gbrframe;
  
      switch (avctx->pix_fmt) {
-@@ -571,59 +669,131 @@
-                "Could not copy the frame data to the internal image buffer\n");
+@@ -572,58 +673,131 @@
          return -1;
      }
+ 
+-    cio_seek(stream, 0);
 +#if OPENJPEG_MAJOR_VERSION == 2
 +    if ((ret = ff_alloc_packet2(avctx, pkt, 1024)) < 0) {
 +        return ret;
 +    }
 +#endif // OPENJPEG_MAJOR_VERSION == 2
- 
--    cio_seek(stream, 0);
++
 +    compress = opj_create_compress(ctx->format);
 +    if (!compress) {
 +        av_log(avctx, AV_LOG_ERROR, "Error creating the compressor\n");
@@ -712,8 +710,9 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegenc.c ffmpeg-2.4.13/libavco
      }
  
      len = cio_tell(stream);
-     if ((ret = ff_alloc_packet2(avctx, pkt, len)) < 0) {
+-    if ((ret = ff_alloc_packet2(avctx, pkt, len)) < 0) {
 -        return ret;
++    if ((ret = ff_alloc_packet2(avctx, pkt, len, 0)) < 0) {
 +        goto done;
      }
  
@@ -751,11 +750,11 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegenc.c ffmpeg-2.4.13/libavco
 +#if OPENJPEG_MAJOR_VERSION == 2
 +    opj_stream_destroy(stream);
 +    opj_destroy_codec(compress);
-+#else 
++#else
 +    opj_cio_close(stream);
 +    opj_destroy_compress(compress);
 +#endif
-+    return ret; 
++    return ret;
  }
  
  static av_cold int libopenjpeg_encode_close(AVCodecContext *avctx)
@@ -805,12 +804,30 @@ diff -urNad ffmpeg-2.4.13-orig/libavcodec/libopenjpegenc.c ffmpeg-2.4.13/libavco
 +    { "2k_24",         NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(CINEMA2K_24) }, 0,         0,           VE, "cinema_mode" },
 +    { "2k_48",         NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(CINEMA2K_48) }, 0,         0,           VE, "cinema_mode" },
 +    { "4k_24",         NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(CINEMA4K_24) }, 0,         0,           VE, "cinema_mode" },
-+    { "prog_order",    "Progression Order", OFFSET(prog_order),    AV_OPT_TYPE_INT,   { .i64 = OPJ(LRCP)        }, OPJ(LRCP),      OPJ(CPRL),        VE, "prog_order"  },
-+    { "lrcp",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(LRCP)        }, 0,         0,           VE, "prog_order"  },
-+    { "rlcp",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(RLCP)        }, 0,         0,           VE, "prog_order"  },
-+    { "rpcl",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(RPCL)        }, 0,         0,           VE, "prog_order"  },
-+    { "pcrl",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(PCRL)        }, 0,         0,           VE, "prog_order"  },
-+    { "cprl",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(CPRL)        }, 0,         0,           VE, "prog_order"  },
++    { "prog_order",    "Progression Order", OFFSET(prog_order),    AV_OPT_TYPE_INT,   { .i64 = OPJ(LRCP)    }, OPJ(LRCP),  OPJ(CPRL),    VE, "prog_order"  },
++    { "lrcp",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(LRCP)    }, 0,         0,           VE, "prog_order"  },
++    { "rlcp",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(RLCP)    }, 0,         0,           VE, "prog_order"  },
++    { "rpcl",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(RPCL)    }, 0,         0,           VE, "prog_order"  },
++    { "pcrl",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(PCRL)    }, 0,         0,           VE, "prog_order"  },
++    { "cprl",          NULL,                0,                     AV_OPT_TYPE_CONST, { .i64 = OPJ(CPRL)    }, 0,         0,           VE, "prog_order"  },
      { "numresolution", NULL,                OFFSET(numresolution), AV_OPT_TYPE_INT,   { .i64 = 6           }, 1,         INT_MAX,     VE                },
      { "numlayers",     NULL,                OFFSET(numlayers),     AV_OPT_TYPE_INT,   { .i64 = 1           }, 1,         10,          VE                },
      { "disto_alloc",   NULL,                OFFSET(disto_alloc),   AV_OPT_TYPE_INT,   { .i64 = 1           }, 0,         1,           VE                },
+--- ffmpeg-2.5.11-orig/libavformat/libquvi.c	2016-02-02 22:42:23.000000000 +0200
++++ ffmpeg-2.5.11/libavformat/libquvi.c	2016-09-16 18:38:18.000000000 +0300
+@@ -84,13 +84,13 @@
+         if (!qc->fmtctx->format_whitelist) {
+             avformat_free_context(qc->fmtctx);
+             qc->fmtctx = NULL;
+-            goto err_quvi_cleanup;
++            goto end;
+         }
+     }
+     if (strncmp(media_url, "http:", 5) && strncmp(media_url, "https:", 6)) {
+         avformat_free_context(qc->fmtctx);
+         qc->fmtctx = NULL;
+-        goto err_quvi_cleanup;
++        goto end;
+     }
+ 
+     ret = avformat_open_input(&qc->fmtctx, media_url, NULL, NULL);
