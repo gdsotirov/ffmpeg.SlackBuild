@@ -1,14 +1,13 @@
-# Backport revision 99eabcdd5f904e98a02184889ab84cc9d5c17a8c from git://source.ffmpeg.org/ffmpeg.git to FFmpeg 2.6.9
+# Backport revision 99eabcdd5f904e98a02184889ab84cc9d5c17a8c from git://source.ffmpeg.org/ffmpeg.git to FFmpeg 2.7.7
 # Written by Georgi D. Sotirov (gdsotirov@dir.bg)
 # See https://github.com/FFmpeg/FFmpeg/commit/12a83bc0aa4bf680805757fd5e025adf3b16c526
 # See https://github.com/FFmpeg/FFmpeg/commit/1f13348f7d1049fe9be2897d8cd88024db233bda
 # See https://github.com/FFmpeg/FFmpeg/commit/ecc92ee717eac18540e236ee27e9052cd2917800
 # See https://github.com/FFmpeg/FFmpeg/commit/99eabcdd5f904e98a02184889ab84cc9d5c17a8c
-# Fix build issue (see https://trac.ffmpeg.org/ticket/5694)
-diff -urNad ffmpeg-2.6.9-orig/configure ffmpeg-2.6.9/configure
---- ffmpeg-2.6.9-orig/configure	2016-05-03 05:10:04.000000000 +0300
-+++ ffmpeg-2.6.9/configure	2016-09-17 11:41:07.000000000 +0300
-@@ -1660,6 +1660,8 @@
+diff -urNad ffmpeg-2.7.7-orig/configure ffmpeg-2.7.7/configure
+--- ffmpeg-2.7.7-orig/configure	2016-04-30 17:16:25.000000000 +0300
++++ ffmpeg-2.7.7/configure	2016-09-18 21:43:49.000000000 +0300
+@@ -1689,6 +1689,8 @@
      machine_ioctl_bt848_h
      machine_ioctl_meteor_h
      malloc_h
@@ -17,7 +16,7 @@ diff -urNad ffmpeg-2.6.9-orig/configure ffmpeg-2.6.9/configure
      openjpeg_1_5_openjpeg_h
      OpenGL_gl3_h
      poll_h
-@@ -4937,9 +4939,10 @@
+@@ -5113,9 +5115,10 @@
  enabled libopencore_amrwb && require libopencore_amrwb opencore-amrwb/dec_if.h D_IF_init -lopencore-amrwb
  enabled libopencv         && require_pkg_config opencv opencv/cxcore.h cvCreateImageHeader
  enabled libopenh264       && require_pkg_config openh264 wels/codec_api.h WelsGetCodecVersion
@@ -31,9 +30,9 @@ diff -urNad ffmpeg-2.6.9-orig/configure ffmpeg-2.6.9/configure
                                 die "ERROR: libopenjpeg not found"; }
  enabled libopus           && require_pkg_config opus opus_multistream.h opus_multistream_decoder_create
  enabled libpulse          && require_pkg_config libpulse pulse/pulseaudio.h pa_context_new
-diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegdec.c ffmpeg-2.6.9/libavcodec/libopenjpegdec.c
---- ffmpeg-2.6.9-orig/libavcodec/libopenjpegdec.c	2016-05-03 05:10:06.000000000 +0300
-+++ ffmpeg-2.6.9/libavcodec/libopenjpegdec.c	2016-09-17 11:41:29.000000000 +0300
+diff -urNad ffmpeg-2.7.7-orig/libavcodec/libopenjpegdec.c ffmpeg-2.7.7/libavcodec/libopenjpegdec.c
+--- ffmpeg-2.7.7-orig/libavcodec/libopenjpegdec.c	2016-04-30 17:16:27.000000000 +0300
++++ ffmpeg-2.7.7/libavcodec/libopenjpegdec.c	2016-09-18 21:57:47.000000000 +0300
 @@ -24,8 +24,6 @@
   * JPEG 2000 decoder using libopenjpeg
   */
@@ -69,31 +68,20 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegdec.c ffmpeg-2.6.9/libavcode
  #endif
  
  #define JP2_SIG_TYPE    0x6A502020
-@@ -83,9 +93,83 @@
+@@ -83,7 +93,9 @@
  typedef struct LibOpenJPEGContext {
      AVClass *class;
      opj_dparameters_t dec_params;
 +#if OPENJPEG_MAJOR_VERSION == 1
-+        opj_event_mgr_t event_mgr;
+     opj_event_mgr_t event_mgr;
 +#endif // OPENJPEG_MAJOR_VERSION == 1
      int lowqual;
  } LibOpenJPEGContext;
  
-+static void error_callback(const char *msg, void *data)
-+{
-+    av_log(data, AV_LOG_ERROR, "%s", msg);
-+}
-+
-+static void warning_callback(const char *msg, void *data)
-+{
-+    av_log(data, AV_LOG_WARNING, "%s", msg);
-+}
-+
-+static void info_callback(const char *msg, void *data)
-+{
-+    av_log(data, AV_LOG_DEBUG, "%s", msg);
-+}
-+
+@@ -102,6 +114,62 @@
+     av_log(data, AV_LOG_DEBUG, "%s", msg);
+ }
+ 
 +#if OPENJPEG_MAJOR_VERSION == 2
 +typedef struct BufferReader {
 +    int pos;
@@ -153,7 +141,7 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegdec.c ffmpeg-2.6.9/libavcode
  static inline int libopenjpeg_matches_pix_fmt(const opj_image_t *image, enum AVPixelFormat pix_fmt)
  {
      const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(pix_fmt);
-@@ -129,15 +213,15 @@
+@@ -145,15 +213,15 @@
      int possible_fmts_nb = 0;
  
      switch (image->color_space) {
@@ -172,7 +160,7 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegdec.c ffmpeg-2.6.9/libavcode
          possible_fmts    = libopenjpeg_yuv_pix_fmts;
          possible_fmts_nb = FF_ARRAY_ELEMS(libopenjpeg_yuv_pix_fmts);
          break;
-@@ -259,13 +343,19 @@
+@@ -275,13 +343,19 @@
      ThreadFrame frame       = { .f = data };
      AVFrame *picture        = data;
      const AVPixFmtDescriptor *desc;
@@ -195,7 +183,7 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegdec.c ffmpeg-2.6.9/libavcode
  
      *got_frame = 0;
  
-@@ -273,41 +363,84 @@
+@@ -289,19 +363,22 @@
      if ((AV_RB32(buf) == 12) &&
          (AV_RB32(buf + 4) == JP2_SIG_TYPE) &&
          (AV_RB32(buf + 8) == JP2_SIG_VALUE)) {
@@ -216,14 +204,13 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegdec.c ffmpeg-2.6.9/libavcode
 +        ret = AVERROR_EXTERNAL;
 +        goto done;
      }
--    opj_set_event_mgr((opj_common_ptr) dec, NULL, NULL);
 +
-+#if OPENJPEG_MAJOR_VERSION == 1
-+    memset(&ctx->event_mgr, 0, sizeof(ctx->event_mgr));
-+    ctx->event_mgr.info_handler    = info_callback;
-+    ctx->event_mgr.error_handler   = error_callback;
-+    ctx->event_mgr.warning_handler = warning_callback;
-+    opj_set_event_mgr((opj_common_ptr) dec, &ctx->event_mgr, avctx);
++ #if OPENJPEG_MAJOR_VERSION == 1
+     memset(&ctx->event_mgr, 0, sizeof(ctx->event_mgr));
+     ctx->event_mgr.info_handler    = info_callback;
+     ctx->event_mgr.error_handler   = error_callback;
+@@ -309,25 +386,61 @@
+     opj_set_event_mgr((opj_common_ptr) dec, &ctx->event_mgr, avctx);
      ctx->dec_params.cp_limit_decoding = LIMIT_TO_MAIN_HEADER;
      ctx->dec_params.cp_layer          = ctx->lowqual;
 +#else // OPENJPEG_MAJOR_VERSION == 2
@@ -290,7 +277,7 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegdec.c ffmpeg-2.6.9/libavcode
      }
  
      width  = image->x1 - image->x0;
-@@ -325,7 +458,8 @@
+@@ -345,7 +458,8 @@
          avctx->pix_fmt = libopenjpeg_guess_pix_fmt(image);
  
      if (avctx->pix_fmt == AV_PIX_FMT_NONE) {
@@ -300,7 +287,7 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegdec.c ffmpeg-2.6.9/libavcode
          goto done;
      }
      for (i = 0; i < image->numcomps; i++)
-@@ -335,6 +469,7 @@
+@@ -355,6 +469,7 @@
      if ((ret = ff_thread_get_buffer(avctx, &frame, 0)) < 0)
          goto done;
  
@@ -308,7 +295,7 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegdec.c ffmpeg-2.6.9/libavcode
      ctx->dec_params.cp_limit_decoding = NO_LIMITATION;
      ctx->dec_params.cp_reduce = avctx->lowres;
      // Tie decoder with decoding parameters.
-@@ -343,18 +478,20 @@
+@@ -363,18 +478,20 @@
      if (!stream) {
          av_log(avctx, AV_LOG_ERROR,
                 "Codestream could not be opened for reading.\n");
@@ -334,7 +321,7 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegdec.c ffmpeg-2.6.9/libavcode
          goto done;
      }
  
-@@ -409,7 +546,13 @@
+@@ -429,7 +546,13 @@
  
  done:
      opj_image_destroy(image);
@@ -348,9 +335,9 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegdec.c ffmpeg-2.6.9/libavcode
      return ret;
  }
  
-diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegenc.c ffmpeg-2.6.9/libavcodec/libopenjpegenc.c
---- ffmpeg-2.6.9-orig/libavcodec/libopenjpegenc.c	2016-05-03 05:10:06.000000000 +0300
-+++ ffmpeg-2.6.9/libavcodec/libopenjpegenc.c	2016-09-17 11:41:37.000000000 +0300
+diff -urNad ffmpeg-2.7.7-orig/libavcodec/libopenjpegenc.c ffmpeg-2.7.7/libavcodec/libopenjpegenc.c
+--- ffmpeg-2.7.7-orig/libavcodec/libopenjpegenc.c	2016-04-30 17:16:27.000000000 +0300
++++ ffmpeg-2.7.7/libavcodec/libopenjpegenc.c	2016-09-18 22:12:32.000000000 +0300
 @@ -24,8 +24,6 @@
   * JPEG 2000 encoder using libopenjpeg
   */
@@ -597,7 +584,7 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegenc.c ffmpeg-2.6.9/libavcode
      AVFrame *gbrframe;
  
      switch (avctx->pix_fmt) {
-@@ -560,46 +694,99 @@
+@@ -560,20 +694,46 @@
          return -1;
      }
  
@@ -642,15 +629,13 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegenc.c ffmpeg-2.6.9/libavcode
 +        ret = AVERROR(ENOMEM);
 +        goto done;
      }
--
--    memset(&ctx->event_mgr, 0, sizeof(opj_event_mgr_t));
+ 
 +#if OPENJPEG_MAJOR_VERSION == 1
-+    memset(&ctx->event_mgr, 0, sizeof(ctx->event_mgr));
+     memset(&ctx->event_mgr, 0, sizeof(ctx->event_mgr));
      ctx->event_mgr.info_handler    = info_callback;
      ctx->event_mgr.error_handler   = error_callback;
-     ctx->event_mgr.warning_handler = warning_callback;
-     opj_set_event_mgr((opj_common_ptr) compress, &ctx->event_mgr, avctx);
--
+@@ -582,24 +742,54 @@
+ 
      if (!opj_encode(compress, stream, image, NULL)) {
          av_log(avctx, AV_LOG_ERROR, "Error during the opj encode\n");
 -        return -1;
@@ -659,9 +644,8 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegenc.c ffmpeg-2.6.9/libavcode
      }
  
      len = cio_tell(stream);
--    if ((ret = ff_alloc_packet2(avctx, pkt, len)) < 0) {
+     if ((ret = ff_alloc_packet2(avctx, pkt, len)) < 0) {
 -        return ret;
-+    if ((ret = ff_alloc_packet2(avctx, pkt, len, 0)) < 0) {
 +        goto done;
      }
  
@@ -703,14 +687,14 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegenc.c ffmpeg-2.6.9/libavcode
 -    stream = NULL;
      opj_destroy_compress(compress);
 -    compress = NULL;
--
--    return 0;
 +#endif
 +    return ret;
+ 
+-    return 0;
  }
  
  static av_cold int libopenjpeg_encode_close(AVCodecContext *avctx)
-@@ -615,24 +802,24 @@
+@@ -615,24 +805,24 @@
  #define OFFSET(x) offsetof(LibOpenJPEGContext, x)
  #define VE AV_OPT_FLAG_VIDEO_PARAM | AV_OPT_FLAG_ENCODING_PARAM
  static const AVOption options[] = {
@@ -753,23 +737,3 @@ diff -urNad ffmpeg-2.6.9-orig/libavcodec/libopenjpegenc.c ffmpeg-2.6.9/libavcode
      { "numresolution", NULL,                OFFSET(numresolution), AV_OPT_TYPE_INT,   { .i64 = 6           }, 1,         INT_MAX,     VE                },
      { "numlayers",     NULL,                OFFSET(numlayers),     AV_OPT_TYPE_INT,   { .i64 = 1           }, 1,         10,          VE                },
      { "disto_alloc",   NULL,                OFFSET(disto_alloc),   AV_OPT_TYPE_INT,   { .i64 = 1           }, 0,         1,           VE                },
-# Fix compile issue with libavformat/libquvi.c (wrong label)
-diff -urNad ffmpeg-2.6.9-orig/libavformat/libquvi.c ffmpeg-2.6.9/libavformat/libquvi.c
---- ffmpeg-2.6.9-orig/libavformat/libquvi.c	2016-05-03 05:10:08.000000000 +0300
-+++ ffmpeg-2.6.9/libavformat/libquvi.c	2016-09-17 11:40:34.000000000 +0300
-@@ -84,13 +84,13 @@
-         if (!qc->fmtctx->format_whitelist) {
-             avformat_free_context(qc->fmtctx);
-             qc->fmtctx = NULL;
--            goto err_quvi_cleanup;
-+            goto end;
-         }
-     }
-     if (strncmp(media_url, "http:", 5) && strncmp(media_url, "https:", 6)) {
-         avformat_free_context(qc->fmtctx);
-         qc->fmtctx = NULL;
--        goto err_quvi_cleanup;
-+        goto end;
-     }
- 
-     ret = avformat_open_input(&qc->fmtctx, media_url, NULL, NULL);
