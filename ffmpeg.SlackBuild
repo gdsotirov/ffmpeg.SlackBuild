@@ -19,13 +19,13 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.27 2016/09/16 16:05:22 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.28 2016/09/18 13:22:44 gsotirov Exp $
 #
 
 . ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=2.5.11
+VERSION=2.6.9
 ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
 
@@ -126,6 +126,7 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libtheora \
             --enable-libtwolame \
             --enable-libv4l2 \
+            --enable-libvidstab \
             --enable-libvorbis \
             --enable-libvpx \
             --enable-libwebp \
