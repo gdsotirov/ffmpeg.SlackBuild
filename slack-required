@@ -70,6 +70,7 @@ rtmpdump >= 2.4.20131007
 schroedinger >= 1.0.11
 sdl >= 1.2.14
 slang >= 2.2.3
+soxr >= 0.1.1
 speex >= 1.2rc1
 svgalib >= 1.9.25
 twolame >= 0.3.13
