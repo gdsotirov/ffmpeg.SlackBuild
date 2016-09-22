@@ -19,7 +19,7 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.18.2.5 2016/09/14 21:21:27 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.18.2.6 2016/09/22 11:53:30 gsotirov Exp $
 #
 
 . ../../slack-package.conf
@@ -108,6 +108,7 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --enable-libpulse \
             --enable-librtmp \
             --enable-libschroedinger \
+            --enable-libsoxr \
             --enable-libspeex \
             --enable-libtheora \
             --enable-libtwolame \
