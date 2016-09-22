@@ -19,13 +19,13 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.29 2016/09/18 19:52:51 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.30 2016/09/22 11:56:32 gsotirov Exp $
 #
 
 . ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=2.7.7
+VERSION=2.8.8
 ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
 
@@ -109,6 +109,7 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libgsm \
             --enable-libiec61883 \
             --enable-libilbc \
+            --enable-libkvazaar \
             --enable-libmodplug \
             --enable-libmp3lame \
             --enable-libopencore-amrnb \
@@ -120,6 +121,7 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-librtmp \
             --enable-libschroedinger \
             --enable-libsmbclient \
+            --enable-libsnappy \
             --enable-libsoxr \
             --enable-libspeex \
             --enable-libssh \
