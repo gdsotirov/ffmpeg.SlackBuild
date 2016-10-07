@@ -19,7 +19,7 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.15.4.3 2016/09/14 17:05:12 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.15.4.4 2016/10/07 18:45:00 gsotirov Exp $
 #
 
 . ../../slack-package.conf
@@ -106,6 +106,7 @@ CXXFLAGS="$SLKCFLAGS `pkg-config --cflags libopenjpeg1`" \
             --enable-libvpx \
             --enable-libx264 \
             --enable-libxvid \
+            --enable-openal \
             --enable-zlib \
             --disable-debug || exit 4
 
