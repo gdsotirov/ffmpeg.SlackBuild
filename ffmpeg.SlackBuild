@@ -19,7 +19,7 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.31 2016/09/22 18:37:23 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.32 2016/10/08 19:41:35 gsotirov Exp $
 #
 
 . ../../slack-package.conf
@@ -89,6 +89,7 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-avresample \
             --enable-pthreads \
             --enable-bzlib \
+            --enable-chromaprint \
             --enable-gmp \
             --enable-fontconfig \
             --enable-frei0r \
@@ -116,6 +117,7 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libopenjpeg \
             --enable-libopus \
             --enable-libpulse \
+            --enable-librubberband \
             --enable-librtmp \
             --enable-libschroedinger \
             --enable-libsmbclient \
@@ -123,9 +125,11 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libsoxr \
             --enable-libspeex \
             --enable-libssh \
+            --enable-libtesseract \
             --enable-libtheora \
             --enable-libtwolame \
             --enable-libv4l2 \
+            --enable-libvidstab \
             --enable-libvorbis \
             --enable-libvpx \
             --enable-libwebp \
@@ -135,17 +139,13 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libxvid \
             --enable-libzvbi \
             --enable-lzma \
+            --enable-netcdf \
+            --enable-openal \
             --enable-opengl \
             --enable-sdl \
             --enable-x11grab \
             --enable-zlib \
             --disable-debug || exit 5
-
-#           --enable-chromaprint   # later
-#           --enable-librubberband # later
-#           --enable-libtesseract  # later
-#           --enable-libvidstab    # to rebuild after building transcode
-#           --enable-netcdf        # later
 
 #           --enable-libfaac       # non-free
 #           --enable-libfdk-aac    # non-free
