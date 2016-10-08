@@ -19,7 +19,7 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.30 2016/09/22 11:56:32 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.30.2.1 2016/10/08 12:37:35 gsotirov Exp $
 #
 
 . ../../slack-package.conf
@@ -138,6 +138,7 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libxvid \
             --enable-libzvbi \
             --enable-lzma \
+            --enable-openal \
             --enable-opengl \
             --enable-sdl \
             --enable-x11grab \
