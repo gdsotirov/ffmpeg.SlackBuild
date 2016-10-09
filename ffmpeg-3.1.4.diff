@@ -1,10 +1,10 @@
 # Fix linking OpenJPEG as shared library
 # See https://github.com/uclouvain/openjpeg/issues/802
-diff -urNad ffmpeg-3.0.3-orig/configure ffmpeg-3.0.3/configure
---- ffmpeg-3.0.3-orig/configure	2016-09-05 04:03:04.000000000 +0300
-+++ ffmpeg-3.0.3/configure	2016-09-22 21:00:09.000000000 +0300
-@@ -5481,10 +5481,10 @@
-                                require_pkg_config opencv opencv2/core/core_c.h cvCreateImageHeader ||
+diff -urNad ffmpeg-3.1.4-orig/configure ffmpeg-3.1.4/configure
+--- ffmpeg-3.1.4-orig/configure	2016-10-01 04:12:41.000000000 +0300
++++ ffmpeg-3.1.4/configure	2016-10-09 18:17:07.000000000 +0300
+@@ -5671,10 +5671,10 @@
+                                  require opencv opencv2/core/core_c.h cvCreateImageHeader -lopencv_core -lopencv_imgproc; } ||
                                 require_pkg_config opencv opencv/cxcore.h cvCreateImageHeader; }
  enabled libopenh264       && require_pkg_config openh264 wels/codec_api.h WelsGetCodecVersion
 -enabled libopenjpeg       && { check_lib openjpeg-2.1/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC ||
@@ -18,9 +18,9 @@ diff -urNad ffmpeg-3.0.3-orig/configure ffmpeg-3.0.3/configure
                                 die "ERROR: libopenjpeg not found"; }
  enabled libopus           && require_pkg_config opus opus_multistream.h opus_multistream_decoder_create
  enabled libpulse          && require_pkg_config libpulse pulse/pulseaudio.h pa_context_new
-diff -urNad ffmpeg-3.0.3-orig/libavcodec/libopenjpegdec.c ffmpeg-3.0.3/libavcodec/libopenjpegdec.c
---- ffmpeg-3.0.3-orig/libavcodec/libopenjpegdec.c	2016-09-05 04:02:55.000000000 +0300
-+++ ffmpeg-3.0.3/libavcodec/libopenjpegdec.c	2016-09-22 21:00:29.000000000 +0300
+diff -urNad ffmpeg-3.1.4-orig/libavcodec/libopenjpegdec.c ffmpeg-3.1.4/libavcodec/libopenjpegdec.c
+--- ffmpeg-3.1.4-orig/libavcodec/libopenjpegdec.c	2016-10-01 04:12:41.000000000 +0300
++++ ffmpeg-3.1.4/libavcodec/libopenjpegdec.c	2016-10-09 18:17:07.000000000 +0300
 @@ -24,8 +24,6 @@
   * JPEG 2000 decoder using libopenjpeg
   */
@@ -30,9 +30,9 @@ diff -urNad ffmpeg-3.0.3-orig/libavcodec/libopenjpegdec.c ffmpeg-3.0.3/libavcode
  #include "libavutil/common.h"
  #include "libavutil/imgutils.h"
  #include "libavutil/intreadwrite.h"
-diff -urNad ffmpeg-3.0.3-orig/libavcodec/libopenjpegenc.c ffmpeg-3.0.3/libavcodec/libopenjpegenc.c
---- ffmpeg-3.0.3-orig/libavcodec/libopenjpegenc.c	2016-09-05 04:03:04.000000000 +0300
-+++ ffmpeg-3.0.3/libavcodec/libopenjpegenc.c	2016-09-22 21:00:42.000000000 +0300
+diff -urNad ffmpeg-3.1.4-orig/libavcodec/libopenjpegenc.c ffmpeg-3.1.4/libavcodec/libopenjpegenc.c
+--- ffmpeg-3.1.4-orig/libavcodec/libopenjpegenc.c	2016-10-01 04:12:41.000000000 +0300
++++ ffmpeg-3.1.4/libavcodec/libopenjpegenc.c	2016-10-09 18:17:07.000000000 +0300
 @@ -24,8 +24,6 @@
   * JPEG 2000 encoder using libopenjpeg
   */
