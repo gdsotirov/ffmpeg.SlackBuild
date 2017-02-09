@@ -4,9 +4,9 @@
 # See https://github.com/FFmpeg/FFmpeg/commit/1f13348f7d1049fe9be2897d8cd88024db233bda
 # See https://github.com/FFmpeg/FFmpeg/commit/ecc92ee717eac18540e236ee27e9052cd2917800
 # See https://github.com/FFmpeg/FFmpeg/commit/99eabcdd5f904e98a02184889ab84cc9d5c17a8c
-diff -urNad ffmpeg-2.8.10-orig/configure ffmpeg-2.8.10/configure
---- ffmpeg-2.8.10-orig/configure	2016-12-06 04:52:47.000000000 +0200
-+++ ffmpeg-2.8.10/configure	2016-12-06 09:02:34.605881248 +0200
+diff -urNad ffmpeg-2.8.11-orig/configure ffmpeg-2.8.11/configure
+--- ffmpeg-2.8.11-orig/configure	2017-02-09 18:14:55.000000000 +0200
++++ ffmpeg-2.8.11/configure	2017-02-09 20:39:27.925700477 +0200
 @@ -1697,6 +1697,8 @@
      machine_ioctl_bt848_h
      machine_ioctl_meteor_h
@@ -30,9 +30,9 @@ diff -urNad ffmpeg-2.8.10-orig/configure ffmpeg-2.8.10/configure
                                 die "ERROR: libopenjpeg not found"; }
  enabled libopus           && require_pkg_config opus opus_multistream.h opus_multistream_decoder_create
  enabled libpulse          && require_pkg_config libpulse pulse/pulseaudio.h pa_context_new
-diff -urNad ffmpeg-2.8.10-orig/libavcodec/libopenjpegdec.c ffmpeg-2.8.10/libavcodec/libopenjpegdec.c
---- ffmpeg-2.8.10-orig/libavcodec/libopenjpegdec.c	2016-12-06 04:52:42.000000000 +0200
-+++ ffmpeg-2.8.10/libavcodec/libopenjpegdec.c	2016-12-06 09:02:34.679874960 +0200
+diff -urNad ffmpeg-2.8.11-orig/libavcodec/libopenjpegdec.c ffmpeg-2.8.11/libavcodec/libopenjpegdec.c
+--- ffmpeg-2.8.11-orig/libavcodec/libopenjpegdec.c	2017-02-09 18:14:40.000000000 +0200
++++ ffmpeg-2.8.11/libavcodec/libopenjpegdec.c	2017-02-09 20:39:27.977696094 +0200
 @@ -24,8 +24,6 @@
   * JPEG 2000 decoder using libopenjpeg
   */
@@ -335,9 +335,9 @@ diff -urNad ffmpeg-2.8.10-orig/libavcodec/libopenjpegdec.c ffmpeg-2.8.10/libavco
      return ret;
  }
  
-diff -urNad ffmpeg-2.8.10-orig/libavcodec/libopenjpegenc.c ffmpeg-2.8.10/libavcodec/libopenjpegenc.c
---- ffmpeg-2.8.10-orig/libavcodec/libopenjpegenc.c	2016-12-06 04:52:42.000000000 +0200
-+++ ffmpeg-2.8.10/libavcodec/libopenjpegenc.c	2016-12-06 09:02:34.822862811 +0200
+diff -urNad ffmpeg-2.8.11-orig/libavcodec/libopenjpegenc.c ffmpeg-2.8.11/libavcodec/libopenjpegenc.c
+--- ffmpeg-2.8.11-orig/libavcodec/libopenjpegenc.c	2017-02-09 18:14:40.000000000 +0200
++++ ffmpeg-2.8.11/libavcodec/libopenjpegenc.c	2017-02-09 20:39:28.058689267 +0200
 @@ -24,8 +24,6 @@
   * JPEG 2000 encoder using libopenjpeg
   */
