@@ -19,13 +19,13 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.39 2017/02/10 15:01:17 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.40 2017/04/16 10:25:20 gsotirov Exp $
 #
 
 . ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=3.2.4
+VERSION=3.3
 ARCH=${ARCH:-i586}
 BUILD=${BUILD:-1}
 
@@ -101,7 +101,6 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libcaca \
             --enable-libcdio \
             --enable-libdc1394 \
-            --enable-libebur128 \
             --enable-libflite \
             --enable-libfontconfig \
             --enable-libfreetype \
@@ -144,17 +143,15 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-netcdf \
             --enable-openal \
             --enable-opengl \
-            --enable-sdl \
-            --enable-x11grab \
             --enable-zlib \
             --enable-vaapi \
-            --enable-vda \
             --enable-vdpau \
             --enable-videotoolbox \
             --disable-debug || exit 5
 
 #           --enable-libfdk-aac    # non-free
 #           --enable-openssl       # non-free
+#           --enable-sdl2          # only in -current for now
 
 # Build & install
 make V=1 -j4 || exit 6
