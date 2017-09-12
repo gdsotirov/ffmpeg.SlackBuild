@@ -1,4 +1,5 @@
-# Patch to add support for OpenJPEG 2.2 (see https://github.com/FFmpeg/FFmpeg/commit/078322f33ced4b2db6ac3e5002f98233d6fbf643 )
+# Patch to add support for OpenJPEG 2.2 (see https://github.com/FFmpeg/FFmpeg/commit/078322f33ced4b2db6ac3e5002f98233d6fbf643 
+# and https://github.com/FFmpeg/FFmpeg/commit/7e503828b03804f90733c306154c293cbd15102e )
 diff -urNad ffmpeg-3.3.4-orig/configure ffmpeg-3.3.4/configure
 --- ffmpeg-3.3.4-orig/configure	2017-09-12 03:51:31.000000000 +0300
 +++ ffmpeg-3.3.4/configure	2017-09-12 22:08:33.466872618 +0300
@@ -15,9 +16,9 @@ diff -urNad ffmpeg-3.3.4-orig/configure ffmpeg-3.3.4/configure
                                 require_pkg_config opencv opencv/cxcore.h cvCreateImageHeader; }
  enabled libopenh264       && require_pkg_config openh264 wels/codec_api.h WelsGetCodecVersion
 -enabled libopenjpeg       && { { check_lib openjpeg-2.1/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC && add_cppflags -DOPJ_STATIC; } ||
-+enabled libopenjpeg       && { { check_lib libopenjpeg openjpeg-2.2/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC && add_cppflags -DOPJ_STATIC; } ||
-+                               check_lib libopenjpeg openjpeg-2.2/openjpeg.h opj_version -lopenjp2 ||
-+                               { check_lib libopenjpeg openjpeg-2.1/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC && add_cppflags -DOPJ_STATIC; } || 
++enabled libopenjpeg       && { { check_lib openjpeg-2.2/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC && add_cppflags -DOPJ_STATIC; } ||
++                               check_lib openjpeg-2.2/openjpeg.h opj_version -lopenjp2 ||
++                               { check_lib openjpeg-2.1/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC && add_cppflags -DOPJ_STATIC; } || 
                                 check_lib openjpeg-2.1/openjpeg.h opj_version -lopenjp2 ||
                                 { check_lib openjpeg-2.0/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC && add_cppflags -DOPJ_STATIC; } ||
                                 { check_lib openjpeg-1.5/openjpeg.h opj_version -lopenjpeg -DOPJ_STATIC && add_cppflags -DOPJ_STATIC; } ||
