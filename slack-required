@@ -90,7 +90,7 @@ netcdf >= 4.4.1
 nettle >= 3.2
 openal >= 1.17.2
 opencore-amr >= 0.1.3
-openjpeg >= 2.1.1
+openjpeg >= 2.2
 openldap >= 2.4.44 | openldap-client >= 2.4.42
 openssl >= 1.0.2h | openssl-solibs >= 1.0.2h
 opus >= 1.1.3
