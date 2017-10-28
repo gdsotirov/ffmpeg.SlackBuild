@@ -19,13 +19,13 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.44 2017/09/12 18:57:14 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.45 2017/10/28 08:41:16 gsotirov Exp $
 #
 
 . ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=3.3.4
+VERSION=3.4
 ARCH=${ARCH:-i586}
 BUILD=${BUILD:-1}
 
@@ -118,9 +118,9 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libopenmpt \
             --enable-libopus \
             --enable-libpulse \
+            --enable-librsvg \
             --enable-librubberband \
             --enable-librtmp \
-            --enable-libschroedinger \
             --enable-libsmbclient \
             --enable-libsnappy \
             --enable-libsoxr \
@@ -140,17 +140,15 @@ CXXFLAGS=$SLKCFLAGS \
             --enable-libxvid \
             --enable-libzvbi \
             --enable-lzma \
-            --enable-netcdf \
             --enable-openal \
             --enable-opengl \
             --enable-zlib \
             --enable-vaapi \
             --enable-vdpau \
-            --enable-videotoolbox \
             --disable-debug || exit 5
 
 #           --enable-libfdk-aac    # non-free
-#           --enable-openssl       # non-free
+#           --enable-openssl       # non-free, gnutls used
 #           --enable-sdl2          # only in -current for now
 
 # Build & install
