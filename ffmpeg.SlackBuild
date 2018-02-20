@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Slackware build script for FFmpeg
-# Copyright (C) 2007-2017 Georgi D. Sotirov <gdsotirov@dir.bg>
+# Copyright (C) 2007-2018 Georgi D. Sotirov <gdsotirov@dir.bg>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,13 +19,13 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.30.2.6 2017/09/04 13:37:34 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.30.2.7 2018/02/20 09:08:40 gsotirov Exp $
 #
 
 . ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=2.8.13
+VERSION=2.8.14
 ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
 
