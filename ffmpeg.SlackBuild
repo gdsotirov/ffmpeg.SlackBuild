@@ -19,13 +19,13 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: ffmpeg.SlackBuild,v 1.30.2.7 2018/02/20 09:08:40 gsotirov Exp $
+# $Id: ffmpeg.SlackBuild,v 1.30.2.8 2018/07/17 18:05:39 gsotirov Exp $
 #
 
 . ../../slack-package.conf
 
 NAME=ffmpeg
-VERSION=2.8.14
+VERSION=2.8.15
 ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
 
