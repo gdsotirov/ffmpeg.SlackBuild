@@ -7,5 +7,5 @@ ffmpeg: real time from a TV card. There is an HTTP multimedia streaming
 ffmpeg: server for live broadcasts as well as a simple media player based
 ffmpeg: on SDL and on the FFmpeg libraries.
 ffmpeg:
-ffmpeg: Packaged by Georgi D. Sotirov <gdsotirov@dir.bg>
+ffmpeg: Packaged by Georgi D. Sotirov <gdsotirov@gmail.com>
 ffmpeg:
